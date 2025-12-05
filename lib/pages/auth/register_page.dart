@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:realtog/core/constants/app_colors.dart';
 import 'package:realtog/providers/auth_provider.dart';
 
@@ -58,7 +59,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           ),
         );
         // Navigate back to login page
-        Navigator.pop(context);
+        context.pop();
       }
       // Show error if:
       // 1. Error is not null
@@ -287,7 +288,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           child: Text(
                             'Sign In',
