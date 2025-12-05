@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:realtog/core/constants/app_colors.dart';
 import 'package:realtog/providers/auth_provider.dart';
+import 'register_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -297,8 +298,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to register page
-                            Navigator.pushNamed(context, '/register');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterPage(),
+                              ),
+                            );
                           },
                           child: Text(
                             'Sign Up',

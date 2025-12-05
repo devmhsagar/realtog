@@ -85,18 +85,31 @@ class AuthNotifier extends Notifier<AuthState> {
     );
   }
 
-  Future<void> register(String email, String password, String name) async {
+  Future<void> register({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    try {
-      // TODO: Implement actual registration logic
-      await Future.delayed(const Duration(seconds: 1));
+    final result = await _authService.register(
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+    );
 
-      // Simulate registration success
-      state = state.copyWith(isLoading: false, isAuthenticated: true);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
+    result.fold(
+      (error) {
+        state = state.copyWith(isLoading: false, error: error);
+      },
+      (user) {
+        // For registration, we don't set isAuthenticated to true
+        // User needs to login after registration
+        state = state.copyWith(isLoading: false, user: user);
+      },
+    );
   }
 
   Future<void> logout() async {

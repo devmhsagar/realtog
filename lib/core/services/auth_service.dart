@@ -76,6 +76,74 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+  /// Register with name, email, phone, and password
+  Future<Either<String, UserModel>> register({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.registerUrl,
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        // Check if registration was successful
+        final success = responseData['success'] as bool? ?? false;
+        
+        if (!success) {
+          // Handle success: false case
+          final message = responseData['message'] as String? ?? 'Registration failed';
+          return Left(message);
+        }
+        
+        final data = responseData['data'] as Map<String, dynamic>;
+        
+        // Parse user from response (don't store token for registration)
+        final userJson = data['user'] as Map<String, dynamic>;
+        final user = UserModel.fromJson(userJson);
+
+        return Right(user);
+      } else {
+        return const Left('Registration failed. Please try again.');
+      }
+    } on DioException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+      
+      if (e.response != null && e.response!.data != null) {
+        final errorData = e.response!.data;
+        if (errorData is Map<String, dynamic>) {
+          // Check for success: false response
+          if (errorData.containsKey('success') && 
+              errorData['success'] == false &&
+              errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          } else if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          }
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+                 e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection. Please check your network.';
+      }
+      
+      return Left(errorMessage);
+    } catch (e) {
+      return Left('Unexpected error: ${e.toString()}');
+    }
+  }
+
   /// Logout - clear token
   Future<void> logout() async {
     await _storage.delete(key: 'access_token');
