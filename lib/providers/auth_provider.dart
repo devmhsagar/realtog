@@ -124,3 +124,14 @@ class AuthNotifier extends Notifier<AuthState> {
 final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(() {
   return AuthNotifier();
 });
+
+/// Profile data provider - fetches current user data
+final profileDataProvider = FutureProvider<UserModel>((ref) async {
+  final authService = ref.read(authServiceProvider);
+  final result = await authService.getCurrentUser();
+  
+  return result.fold(
+    (error) => throw Exception(error),
+    (user) => user,
+  );
+});

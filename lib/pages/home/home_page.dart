@@ -227,123 +227,141 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildProfileContent(user) {
+    final profileAsync = ref.watch(profileDataProvider);
+
     return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (user != null) ...[
+      child: profileAsync.when(
+        data: (profileUser) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [
+                    _buildProfileMenuItem(
+                      icon: Icons.person_outline,
+                      label: 'Name',
+                      value: profileUser.name,
+                    ),
+                    SizedBox(height: 8.h),
+                    _buildProfileMenuItem(
+                      icon: Icons.email_outlined,
+                      label: 'Email',
+                      value: profileUser.email,
+                    ),
+                    SizedBox(height: 8.h),
+                    _buildProfileMenuItem(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone',
+                      value: profileUser.phone,
+                    ),
+                    SizedBox(height: 8.h),
+                    _buildProfileMenuItem(
+                      icon: Icons.verified_user_outlined,
+                      label: 'Email Verified',
+                      value: profileUser.emailVerified ? 'Yes' : 'No',
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 24.h),
+              SizedBox(
+                width: double.infinity,
+                height: 56.h,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await ref.read(authNotifierProvider.notifier).logout();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: AppColors.textLight,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (error, stack) => Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64.sp, color: AppColors.error),
+              SizedBox(height: 16.h),
               Text(
-                'Profile',
+                'Failed to load profile',
                 style: TextStyle(
-                  fontSize: 24.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
+              SizedBox(height: 8.h),
+              Text(
+                error.toString(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
               SizedBox(height: 24.h),
-              _buildInfoCard(
-                icon: Icons.person_outline,
-                label: 'Name',
-                value: user.name,
-              ),
-              SizedBox(height: 12.h),
-              _buildInfoCard(
-                icon: Icons.email_outlined,
-                label: 'Email',
-                value: user.email,
-              ),
-              SizedBox(height: 12.h),
-              _buildInfoCard(
-                icon: Icons.phone_outlined,
-                label: 'Phone',
-                value: user.phone,
-              ),
-              SizedBox(height: 12.h),
-              _buildInfoCard(
-                icon: Icons.verified_user_outlined,
-                label: 'Email Verified',
-                value: user.emailVerified ? 'Yes' : 'No',
-              ),
-              SizedBox(height: 12.h),
-              _buildInfoCard(
-                icon: Icons.badge_outlined,
-                label: 'Role',
-                value: user.role,
-              ),
-            ],
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 56.h,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await ref.read(authNotifierProvider.notifier).logout();
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(profileDataProvider);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.textLight,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
                 ),
-                child: Text(
-                  'Logout',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: const Text('Retry'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard({
+  Widget _buildProfileMenuItem({
     required IconData icon,
     required String label,
     required String value,
   }) {
     return Container(
-      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 24.sp),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.primary, size: 24.sp),
+        title: Text(
+          label,
+          style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+        ),
+        subtitle: Text(
+          value,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
-        ],
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       ),
     );
   }
