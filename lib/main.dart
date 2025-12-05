@@ -19,7 +19,7 @@ class App extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
           title: 'RealTog',
           theme: AppTheme.lightTheme,
           home: child,
