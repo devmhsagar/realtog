@@ -234,10 +234,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.g_mobiledata,
-                            size: 24.sp,
-                            color: AppColors.textPrimary,
+                          Image.asset(
+                            'assets/images/google.png',
+                            width: 24.w,
+                            height: 24.h,
                           ),
                           SizedBox(width: 12.w),
                           Text(
