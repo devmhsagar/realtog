@@ -60,8 +60,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         // Navigate back to login page
         Navigator.pop(context);
       }
-      // Only show error if it's different from previous error
-      if (next.error != null && next.error != previous?.error) {
+      // Show error if:
+      // 1. Error is not null
+      // 2. Previous state was loading (error just appeared after API call)
+      // 3. OR error is different from previous error
+      if (next.error != null &&
+          (previous?.isLoading == true || next.error != previous?.error)) {
+        // Dismiss any existing snackbars first
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),

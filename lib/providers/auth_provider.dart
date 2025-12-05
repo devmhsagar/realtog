@@ -91,6 +91,7 @@ class AuthNotifier extends Notifier<AuthState> {
     required String phone,
     required String password,
   }) async {
+    // Clear previous error and set loading
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _authService.register(
@@ -102,12 +103,13 @@ class AuthNotifier extends Notifier<AuthState> {
 
     result.fold(
       (error) {
+        // Set error with loading false
         state = state.copyWith(isLoading: false, error: error);
       },
       (user) {
         // For registration, we don't set isAuthenticated to true
         // User needs to login after registration
-        state = state.copyWith(isLoading: false, user: user);
+        state = state.copyWith(isLoading: false, user: user, error: null);
       },
     );
   }
