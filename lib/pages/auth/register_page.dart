@@ -142,7 +142,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       keyboardType: TextInputType.name,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Full Name',
                         hintText: 'Enter your full name',
                         prefixIcon: const Icon(Icons.person_outline),
                         filled: true,
@@ -192,7 +191,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Email',
                         hintText: 'Enter your email',
                         prefixIcon: const Icon(Icons.email_outlined),
                         filled: true,
@@ -242,7 +240,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Phone',
                         hintText: 'Enter your phone number',
                         prefixIcon: const Icon(Icons.phone_outlined),
                         filled: true,
@@ -293,7 +290,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleRegister(),
                       decoration: InputDecoration(
-                        labelText: 'Password',
                         hintText: 'Enter your password',
                         prefixIcon: const Icon(Icons.lock_outlined),
                         suffixIcon: IconButton(

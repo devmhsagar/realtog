@@ -125,7 +125,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Email or Phone',
                         hintText: 'Enter your email or phone',
                         prefixIcon: const Icon(Icons.person_outline),
                         filled: true,
@@ -173,7 +172,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleLogin(),
                       decoration: InputDecoration(
-                        labelText: 'Password',
                         hintText: 'Enter your password',
                         prefixIcon: const Icon(Icons.lock_outlined),
                         suffixIcon: IconButton(
