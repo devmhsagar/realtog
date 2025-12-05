@@ -40,13 +40,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.isAuthenticated &&
           (previous == null || !previous.isAuthenticated)) {
-        // TODO: Navigate to home page
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Login successful!'),
             backgroundColor: AppColors.success,
           ),
         );
+        // Navigation is handled by RootPage based on auth state
       }
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,15 +116,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     SizedBox(height: 48.h),
 
-                    // Email Field
+                    // Email or Phone Field
                     TextFormField(
                       controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter your email',
-                        prefixIcon: const Icon(Icons.email_outlined),
+                        labelText: 'Email or Phone',
+                        hintText: 'Enter your email or phone',
+                        prefixIcon: const Icon(Icons.person_outline),
                         filled: true,
                         fillColor: AppColors.surface,
                         border: OutlineInputBorder(
@@ -156,10 +156,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
+                          return 'Please enter your email or phone';
                         }
                         return null;
                       },

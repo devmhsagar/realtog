@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:realtog/core/constants/app_colors.dart';
-import 'package:realtog/pages/auth/login_page.dart';
+import 'package:realtog/pages/root_page.dart';
 
 void main() {
   runApp(const ProviderScope(child: App()));
@@ -53,7 +53,7 @@ class App extends StatelessWidget {
           home: child,
         );
       },
-      child: const LoginPage(),
+      child: const RootPage(),
     );
   }
 }
