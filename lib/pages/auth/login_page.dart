@@ -62,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        color: AppColors.primary,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -126,27 +126,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         hintText: 'Enter your email or phone',
-                        prefixIcon: const Icon(Icons.person_outline),
+                        hintStyle: TextStyle(
+                          color: AppColors.textPrimary.withValues(alpha: 0.5),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.person_outline,
+                          color: AppColors.textPrimary.withValues(alpha: 0.7),
+                        ),
                         filled: true,
-                        fillColor: AppColors.surface,
+                        fillColor: AppColors.white.withValues(alpha: 0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(
+                          borderSide: BorderSide(
                             color: AppColors.primary,
                             width: 2,
                           ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.error),
+                          borderSide: const BorderSide(
+                            color: AppColors.error,
+                            width: 1.5,
+                          ),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
@@ -173,12 +188,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       onFieldSubmitted: (_) => _handleLogin(),
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
+                        hintStyle: TextStyle(
+                          color: AppColors.textPrimary.withValues(alpha: 0.5),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.lock_outlined,
+                          color: AppColors.textPrimary.withValues(alpha: 0.7),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
+                            color: AppColors.textPrimary.withValues(alpha: 0.7),
                           ),
                           onPressed: () {
                             setState(() {
@@ -187,25 +209,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           },
                         ),
                         filled: true,
-                        fillColor: AppColors.surface,
+                        fillColor: AppColors.white.withValues(alpha: 0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(
+                          borderSide: BorderSide(
                             color: AppColors.primary,
                             width: 2,
                           ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: const BorderSide(color: AppColors.error),
+                          borderSide: const BorderSide(
+                            color: AppColors.error,
+                            width: 1.5,
+                          ),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
@@ -252,13 +283,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: ElevatedButton(
                         onPressed: authState.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textLight,
+                          backgroundColor: AppColors.white,
+                          foregroundColor: AppColors.primary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.r),
                           ),
-                          disabledBackgroundColor: AppColors.primary.withValues(
+                          disabledBackgroundColor: AppColors.white.withValues(
                             alpha: 0.6,
                           ),
                         ),
@@ -269,7 +300,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 child: const CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.textLight,
+                                    AppColors.primary,
                                   ),
                                 ),
                               )
