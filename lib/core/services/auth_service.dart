@@ -23,7 +23,11 @@ class AuthService {
         },
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Check for successful status codes (200-299)
+      if (response.statusCode != null && 
+          response.statusCode! >= 200 && 
+          response.statusCode! < 300 && 
+          response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
         final data = responseData['data'] as Map<String, dynamic>;
         
@@ -94,7 +98,11 @@ class AuthService {
         },
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Check for successful status codes (200-299)
+      if (response.statusCode != null && 
+          response.statusCode! >= 200 && 
+          response.statusCode! < 300 && 
+          response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
         
         // Check if registration was successful

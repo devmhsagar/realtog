@@ -30,7 +30,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authNotifierProvider.notifier).register(
+      await ref
+          .read(authNotifierProvider.notifier)
+          .register(
             name: _nameController.text.trim(),
             email: _emailController.text.trim(),
             phone: _phoneController.text.trim(),
@@ -45,8 +47,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     // Handle registration success
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      if (next.user != null && 
-          previous?.user == null && 
+      if (next.user != null &&
+          previous?.user == null &&
           !next.isAuthenticated) {
         // Registration successful - show message and navigate to login
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +60,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         // Navigate back to login page
         Navigator.pop(context);
       }
-      if (next.error != null) {
+      // Only show error if it's different from previous error
+      if (next.error != null && next.error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
@@ -414,4 +417,3 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 }
-

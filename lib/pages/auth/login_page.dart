@@ -49,7 +49,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         );
         // Navigation is handled by RootPage based on auth state
       }
-      if (next.error != null) {
+      // Only show error if it's different from previous error
+      if (next.error != null && next.error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
