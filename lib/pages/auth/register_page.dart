@@ -385,7 +385,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ),
                       ),
                     ),
-                    SizedBox(height: 24.h),
+
+                    SizedBox(height: 8.h),
 
                     // Login Link
                     Row(

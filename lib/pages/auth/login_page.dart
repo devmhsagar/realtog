@@ -284,7 +284,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                       ),
                     ),
-                    SizedBox(height: 24.h),
+
+                    SizedBox(height: 8.h),
 
                     // Register Link
                     Row(
