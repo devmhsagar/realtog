@@ -11,15 +11,6 @@ class RootPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
 
-    // Show loading while checking auth status
-    if (authState.isLoading && !authState.isAuthenticated) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     // Navigate based on authentication status
     if (authState.isAuthenticated) {
       return const HomePage();
@@ -28,4 +19,3 @@ class RootPage extends ConsumerWidget {
     }
   }
 }
-
