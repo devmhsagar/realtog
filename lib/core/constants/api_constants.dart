@@ -11,4 +11,10 @@ class ApiConstants {
   static const String googleAuthFailureUrl = "/auth/google/failure";
   static const String forgotPasswordUrl = "/auth/forgot-password";
   static const String resetPasswordUrl = "/auth/reset-password";
+
+  // Pricing endpoints
+  static const String pricingUrl = "/pricing";
+
+  // Order endpoints
+  static const String ordersUrl = "/orders";
 }
