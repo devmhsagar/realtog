@@ -83,7 +83,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -99,7 +99,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         gradient: AppColors.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color: AppColors.darkShadow.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -108,7 +108,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       child: Icon(
                         Icons.camera_alt_rounded,
                         size: 60.sp,
-                        color: AppColors.textLight,
+                        color: AppColors.white,
                       ),
                     ),
                     SizedBox(height: 40.h),
@@ -129,7 +129,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       'Sign up to get started',
                       style: TextStyle(
                         fontSize: 16.sp,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w400,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -396,7 +397,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           'Already have an account? ',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                         TextButton(
@@ -407,8 +409,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             'Sign In',
                             style: TextStyle(
                               fontSize: 14.sp,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),

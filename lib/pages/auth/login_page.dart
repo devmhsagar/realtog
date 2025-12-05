@@ -66,7 +66,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -82,7 +82,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         gradient: AppColors.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color: AppColors.darkShadow.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -91,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: Icon(
                         Icons.camera_alt_rounded,
                         size: 60.sp,
-                        color: AppColors.textLight,
+                        color: AppColors.white,
                       ),
                     ),
                     SizedBox(height: 40.h),
@@ -112,7 +112,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       'Sign in to continue',
                       style: TextStyle(
                         fontSize: 16.sp,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w400,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -239,8 +240,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           'Forgot Password?',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -295,7 +296,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           "Don't have an account? ",
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                         TextButton(
@@ -311,8 +313,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             'Sign Up',
                             style: TextStyle(
                               fontSize: 14.sp,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
