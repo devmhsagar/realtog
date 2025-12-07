@@ -18,3 +18,15 @@ final pricingPlansProvider = FutureProvider<List<PricingModel>>((ref) async {
   );
 });
 
+/// Single pricing plan provider - fetches a pricing plan by ID
+final pricingPlanProvider =
+    FutureProvider.family<PricingModel, String>((ref, id) async {
+  final pricingService = ref.read(pricingServiceProvider);
+  final result = await pricingService.getPricingPlanById(id);
+
+  return result.fold(
+    (error) => throw Exception(error),
+    (plan) => plan,
+  );
+});
+
