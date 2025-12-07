@@ -5,6 +5,7 @@ import '../../pages/auth/login_page.dart';
 import '../../pages/auth/register_page.dart';
 import '../../pages/home/home_page.dart';
 import '../../pages/pricing/pricing_page.dart';
+import '../../pages/select_images/select_images_page.dart';
 import '../../pages/payment/payment_page.dart';
 import '../../providers/auth_provider.dart';
 
@@ -23,6 +24,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnRegisterPage = state.matchedLocation == '/register';
       final isOnHomePage = state.matchedLocation == '/home';
       final isOnPricingPage = state.matchedLocation.startsWith('/pricing/');
+      final isOnSelectImagesPage = state.matchedLocation.startsWith('/select-images');
       final isOnPaymentPage = state.matchedLocation.startsWith('/payment');
 
       // If still loading auth state, don't redirect yet
@@ -36,7 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // If not authenticated and trying to access protected pages, redirect to login
-      if (!isAuthenticated && (isOnHomePage || isOnPricingPage || isOnPaymentPage)) {
+      if (!isAuthenticated && (isOnHomePage || isOnPricingPage || isOnSelectImagesPage || isOnPaymentPage)) {
         return '/login';
       }
 
@@ -77,6 +79,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           return PricingPage(id: id);
+        },
+      ),
+      GoRoute(
+        path: '/select-images',
+        name: 'select-images',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) {
+            // Fallback if no data provided
+            return const SelectImagesPage(
+              pricingPlanId: '',
+              basePrice: 0,
+              hasDecluttering: false,
+              declutteringPrice: 0,
+              totalPrice: 0,
+              maxImages: 0,
+            );
+          }
+          return SelectImagesPage(
+            pricingPlanId: extra['pricingPlanId'] as String? ?? '',
+            basePrice: extra['basePrice'] as int? ?? 0,
+            hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
+            declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
+            totalPrice: extra['totalPrice'] as int? ?? 0,
+            maxImages: extra['maxImages'] as int? ?? 0,
+          );
         },
       ),
       GoRoute(

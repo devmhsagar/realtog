@@ -325,13 +325,14 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         context.push(
-                          '/payment',
+                          '/select-images',
                           extra: {
                             'pricingPlanId': plan.id,
                             'basePrice': plan.price,
                             'hasDecluttering': _isDeclutteringSelected,
                             'declutteringPrice': declutteringPrice,
                             'totalPrice': totalPrice,
+                            'maxImages': plan.maxImages,
                           },
                         );
                       },
