@@ -324,12 +324,15 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Implement place order functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Order placement coming soon!'),
-                            backgroundColor: AppColors.primary,
-                          ),
+                        context.push(
+                          '/payment',
+                          extra: {
+                            'pricingPlanId': plan.id,
+                            'basePrice': plan.price,
+                            'hasDecluttering': _isDeclutteringSelected,
+                            'declutteringPrice': declutteringPrice,
+                            'totalPrice': totalPrice,
+                          },
                         );
                       },
                       style: ElevatedButton.styleFrom(
