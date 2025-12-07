@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../pages/auth/login_page.dart';
 import '../../pages/auth/register_page.dart';
 import '../../pages/home/home_page.dart';
+import '../../pages/pricing/pricing_page.dart';
 import '../../providers/auth_provider.dart';
 
 /// Router configuration provider
@@ -20,6 +21,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnLoginPage = state.matchedLocation == '/login';
       final isOnRegisterPage = state.matchedLocation == '/register';
       final isOnHomePage = state.matchedLocation == '/home';
+      final isOnPricingPage = state.matchedLocation.startsWith('/pricing/');
 
       // If still loading auth state, don't redirect yet
       if (authState.isLoading) {
@@ -32,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // If not authenticated and trying to access protected pages, redirect to login
-      if (!isAuthenticated && isOnHomePage) {
+      if (!isAuthenticated && (isOnHomePage || isOnPricingPage)) {
         return '/login';
       }
 
@@ -66,6 +68,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/pricing/:id',
+        name: 'pricing',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return PricingPage(id: id);
+        },
       ),
     ],
   );

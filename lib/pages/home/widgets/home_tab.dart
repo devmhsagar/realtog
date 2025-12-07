@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/user_model.dart';
 import '../../../models/pricing_model.dart';
 import '../../../providers/pricing_provider.dart';
+import 'view_details_button.dart';
 
 class HomeTab extends ConsumerWidget {
   final UserModel? user;
@@ -96,62 +98,147 @@ class _PricingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  plan.name,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+          // Header section with gradient background
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        plan.name,
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Plan',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: AppColors.textLight.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              Text(
-                '\$${plan.price}',
-                style: TextStyle(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 8.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.textLight.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    'CA\$${plan.price}',
+                    style: TextStyle(
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textLight,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: 20.sp,
-                color: AppColors.textSecondary,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                '${plan.maxImages} Photos',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: AppColors.textSecondary,
+          // Content section
+          Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Features section
+                Container(
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 24.sp,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${plan.maxImages} Photos',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Maximum images included',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(height: 20.h),
+                // View Details Button
+                ViewDetailsButton(
+                  onPressed: () {
+                    context.push('/pricing/${plan.id}');
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
