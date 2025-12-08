@@ -17,4 +17,7 @@ class ApiConstants {
 
   // Order endpoints
   static const String ordersUrl = "/orders";
+
+  // Messaging endpoints
+  static const String messagesUrl = "/messages/user-admin/messages";
 }
