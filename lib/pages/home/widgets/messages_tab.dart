@@ -528,7 +528,6 @@ class _MessageBubble extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
                 color: isUser ? AppColors.primary : AppColors.surface,
                 borderRadius: BorderRadius.only(
@@ -545,109 +544,157 @@ class _MessageBubble extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isUser)
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4.h),
-                      child: Text(
-                        message.senderName,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
-                          color: isUser
-                              ? AppColors.white
-                              : AppColors.textPrimary,
+              child: ClipRRect(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Display images if available
+                    if (message.images.isNotEmpty) ...[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 2.h,
+                          left: 2.h,
+                          right: 2.h,
                         ),
-                      ),
-                    ),
-                  // Display images if available
-                  if (message.images.isNotEmpty) ...[
-                    Wrap(
-                      spacing: 8.w,
-                      runSpacing: 8.h,
-                      children: message.images.map((imageUrl) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(8.r),
-                          child: Image.network(
-                            imageUrl,
-                            width: 150.w,
-                            height: 150.h,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
+                        child: Wrap(
+                          spacing: 8.w,
+                          runSpacing: 8.h,
+                          children: message.images.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final imageUrl = entry.value;
+                            final isFirstImage = index == 0;
+                            final shouldHaveTopLeft = isFirstImage;
+                            final shouldHaveTopRight = isFirstImage;
+
+                            return ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                topLeft: shouldHaveTopLeft
+                                    ? Radius.circular(
+                                        14.r,
+                                      ) // 16.r - 2.w padding
+                                    : Radius.circular(8.r),
+                                topRight: shouldHaveTopRight
+                                    ? Radius.circular(
+                                        14.r,
+                                      ) // 16.r - 2.w padding
+                                    : Radius.circular(8.r),
+                                bottomLeft: Radius.circular(8.r),
+                                bottomRight: Radius.circular(8.r),
+                              ),
+                              child: Image.network(
+                                imageUrl,
                                 width: 150.w,
                                 height: 150.h,
-                                color: AppColors.border,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value:
-                                        loadingProgress.expectedTotalBytes !=
-                                            null
-                                        ? loadingProgress
-                                                  .cumulativeBytesLoaded /
-                                              loadingProgress
-                                                  .expectedTotalBytes!
-                                        : null,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                width: 150.w,
-                                height: 150.h,
-                                color: AppColors.border,
-                                child: Icon(
-                                  Icons.broken_image,
-                                  color: AppColors.textSecondary,
-                                  size: 40.sp,
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    if (message.content.isNotEmpty) SizedBox(height: 8.h),
-                  ],
-                  // Display message text if available
-                  if (message.content.isNotEmpty)
-                    Text(
-                      message.content,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: isUser ? AppColors.white : AppColors.textPrimary,
-                        height: 1.4,
-                      ),
-                    ),
-                  SizedBox(height: 4.h),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        formattedTime,
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          color: isUser
-                              ? AppColors.white.withValues(alpha: 0.7)
-                              : AppColors.textSecondary,
+                                fit: BoxFit.cover,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        width: 150.w,
+                                        height: 150.h,
+                                        color: AppColors.border,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            value:
+                                                loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                : null,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 150.w,
+                                    height: 150.h,
+                                    color: AppColors.border,
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: AppColors.textSecondary,
+                                      size: 40.sp,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
-                      if (isUser && message.read) ...[
-                        SizedBox(width: 4.w),
-                        Icon(
-                          Icons.done_all,
-                          size: 12.sp,
-                          color: AppColors.white.withValues(alpha: 0.7),
-                        ),
-                      ],
+                      if (message.content.isNotEmpty) SizedBox(height: 8.h),
                     ],
-                  ),
-                ],
+                    // Content section with padding
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(
+                            horizontal: message.images.isNotEmpty ? 16.w : 16.w,
+                            vertical: message.images.isNotEmpty ? 0 : 12.h,
+                          ).copyWith(
+                            top: message.images.isNotEmpty ? 0 : 12.h,
+                            bottom: 12.h,
+                          ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!isUser)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 4.h),
+                              child: Text(
+                                message.senderName,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: isUser
+                                      ? AppColors.white
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          // Display message text if available
+                          if (message.content.isNotEmpty)
+                            Text(
+                              message.content,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: isUser
+                                    ? AppColors.white
+                                    : AppColors.textPrimary,
+                                height: 1.4,
+                              ),
+                            ),
+                          SizedBox(height: 4.h),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                formattedTime,
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  color: isUser
+                                      ? AppColors.white.withValues(alpha: 0.7)
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                              if (isUser && message.read) ...[
+                                SizedBox(width: 4.w),
+                                Icon(
+                                  Icons.done_all,
+                                  size: 12.sp,
+                                  color: AppColors.white.withValues(alpha: 0.7),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
