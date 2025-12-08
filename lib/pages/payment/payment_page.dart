@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/order_service.dart';
 
 class PaymentPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
@@ -10,6 +12,7 @@ class PaymentPage extends ConsumerStatefulWidget {
   final bool hasDecluttering;
   final int declutteringPrice;
   final int totalPrice;
+  final List<String>? selectedImagePaths;
 
   const PaymentPage({
     super.key,
@@ -18,6 +21,7 @@ class PaymentPage extends ConsumerStatefulWidget {
     required this.hasDecluttering,
     required this.declutteringPrice,
     required this.totalPrice,
+    this.selectedImagePaths,
   });
 
   @override
@@ -26,35 +30,89 @@ class PaymentPage extends ConsumerStatefulWidget {
 
 class _PaymentPageState extends ConsumerState<PaymentPage> {
   bool _isProcessing = false;
+  final OrderService _orderService = OrderService();
 
   Future<void> _handlePlaceOrder() async {
+    // Validate that images are available
+    if (widget.selectedImagePaths == null ||
+        widget.selectedImagePaths!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No images selected. Please go back and select images.',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
     });
 
-    // Simulate API call delay
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Convert file paths back to XFile objects
+      final imageFiles = widget.selectedImagePaths!
+          .map((path) => XFile(path))
+          .toList();
 
-    setState(() {
-      _isProcessing = false;
-    });
-
-    if (mounted) {
-      // TODO: Replace with actual order placement logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Order placed successfully!'),
-          backgroundColor: AppColors.success,
-          duration: const Duration(seconds: 2),
-        ),
+      final result = await _orderService.createOrder(
+        planId: widget.pricingPlanId,
+        images: imageFiles,
       );
 
-      // Navigate back to home after successful order
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          context.go('/home');
-        }
+      setState(() {
+        _isProcessing = false;
       });
+
+      result.fold(
+        (error) {
+          // Handle error
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $error'),
+                backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+        (data) {
+          // Handle success
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Order placed successfully!'),
+                backgroundColor: AppColors.success,
+                duration: Duration(seconds: 2),
+              ),
+            );
+
+            // Navigate to home after successful order
+            Future.delayed(const Duration(seconds: 1), () {
+              if (mounted) {
+                context.go('/home');
+              }
+            });
+          }
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isProcessing = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unexpected error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -198,7 +256,9 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     elevation: 2,
-                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                    disabledBackgroundColor: AppColors.primary.withValues(
+                      alpha: 0.6,
+                    ),
                   ),
                   child: _isProcessing
                       ? SizedBox(
@@ -284,4 +344,3 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     );
   }
 }
-

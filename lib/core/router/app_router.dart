@@ -120,14 +120,23 @@ final routerProvider = Provider<GoRouter>((ref) {
               hasDecluttering: false,
               declutteringPrice: 0,
               totalPrice: 0,
+              selectedImagePaths: null,
             );
           }
+          // Extract selected image paths if available
+          final selectedImagePaths = extra['selectedImagePaths'] as List<dynamic>?;
+          List<String>? imagePathsList;
+          if (selectedImagePaths != null) {
+            imagePathsList = selectedImagePaths.cast<String>();
+          }
+
           return PaymentPage(
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
             basePrice: extra['basePrice'] as int? ?? 0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
             declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
             totalPrice: extra['totalPrice'] as int? ?? 0,
+            selectedImagePaths: imagePathsList,
           );
         },
       ),

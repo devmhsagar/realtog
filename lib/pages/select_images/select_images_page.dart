@@ -141,6 +141,9 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
       return;
     }
 
+    // Pass file paths instead of XFile objects for navigation
+    final imagePaths = _selectedImages.map((image) => image.path).toList();
+
     context.push(
       '/payment',
       extra: {
@@ -149,7 +152,7 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
         'hasDecluttering': widget.hasDecluttering,
         'declutteringPrice': widget.declutteringPrice,
         'totalPrice': widget.totalPrice,
-        'selectedImages': _selectedImages,
+        'selectedImagePaths': imagePaths,
       },
     );
   }
@@ -386,4 +389,3 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
     );
   }
 }
-
