@@ -81,6 +81,8 @@ class AuthNotifier extends Notifier<AuthState> {
           isAuthenticated: true,
           user: user,
         );
+        // Providers watching authNotifierProvider will automatically invalidate
+        // and refetch when auth state changes
       },
     );
   }
@@ -116,6 +118,9 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await _authService.logout();
+    // Set auth state to unauthenticated
+    // Providers watching authNotifierProvider will automatically invalidate
+    // and clear when auth state changes
     state = const AuthState();
   }
 }
@@ -126,7 +131,16 @@ final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(() {
 });
 
 /// Profile data provider - fetches current user data
+/// Automatically invalidates when auth state changes
 final profileDataProvider = FutureProvider<UserModel>((ref) async {
+  // Watch auth state to automatically invalidate when auth changes
+  final authState = ref.watch(authNotifierProvider);
+  
+  // Only fetch if authenticated
+  if (!authState.isAuthenticated) {
+    throw Exception('User not authenticated');
+  }
+  
   final authService = ref.read(authServiceProvider);
   final result = await authService.getCurrentUser();
   
