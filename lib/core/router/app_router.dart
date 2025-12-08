@@ -6,7 +6,7 @@ import '../../pages/auth/register_page.dart';
 import '../../pages/home/home_page.dart';
 import '../../pages/pricing/pricing_page.dart';
 import '../../pages/select_images/select_images_page.dart';
-import '../../pages/payment/payment_page.dart';
+import '../../pages/order_summary/order_summary_page.dart';
 import '../../providers/auth_provider.dart';
 
 /// Router configuration provider
@@ -24,7 +24,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnRegisterPage = state.matchedLocation == '/register';
       final isOnHomePage = state.matchedLocation == '/home';
       final isOnPricingPage = state.matchedLocation.startsWith('/pricing/');
-      final isOnSelectImagesPage = state.matchedLocation.startsWith('/select-images');
+      final isOnSelectImagesPage = state.matchedLocation.startsWith(
+        '/select-images',
+      );
       final isOnPaymentPage = state.matchedLocation.startsWith('/payment');
 
       // If still loading auth state, don't redirect yet
@@ -38,7 +40,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // If not authenticated and trying to access protected pages, redirect to login
-      if (!isAuthenticated && (isOnHomePage || isOnPricingPage || isOnSelectImagesPage || isOnPaymentPage)) {
+      if (!isAuthenticated &&
+          (isOnHomePage ||
+              isOnPricingPage ||
+              isOnSelectImagesPage ||
+              isOnPaymentPage)) {
         return '/login';
       }
 
@@ -114,7 +120,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra as Map<String, dynamic>?;
           if (extra == null) {
             // Fallback if no data provided
-            return const PaymentPage(
+            return const OrderSummaryPage(
               pricingPlanId: '',
               basePrice: 0,
               hasDecluttering: false,
@@ -124,13 +130,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             );
           }
           // Extract selected image paths if available
-          final selectedImagePaths = extra['selectedImagePaths'] as List<dynamic>?;
+          final selectedImagePaths =
+              extra['selectedImagePaths'] as List<dynamic>?;
           List<String>? imagePathsList;
           if (selectedImagePaths != null) {
             imagePathsList = selectedImagePaths.cast<String>();
           }
 
-          return PaymentPage(
+          return OrderSummaryPage(
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
             basePrice: extra['basePrice'] as int? ?? 0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,

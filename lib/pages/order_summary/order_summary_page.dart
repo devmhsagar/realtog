@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/order_service.dart';
 
-class PaymentPage extends ConsumerStatefulWidget {
+class OrderSummaryPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
   final int basePrice;
   final bool hasDecluttering;
@@ -14,7 +14,7 @@ class PaymentPage extends ConsumerStatefulWidget {
   final int totalPrice;
   final List<String>? selectedImagePaths;
 
-  const PaymentPage({
+  const OrderSummaryPage({
     super.key,
     required this.pricingPlanId,
     required this.basePrice,
@@ -25,10 +25,10 @@ class PaymentPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PaymentPage> createState() => _PaymentPageState();
+  ConsumerState<OrderSummaryPage> createState() => _PaymentPageState();
 }
 
-class _PaymentPageState extends ConsumerState<PaymentPage> {
+class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
   bool _isProcessing = false;
   final OrderService _orderService = OrderService();
 
@@ -120,7 +120,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payment'),
+        title: const Text('Order Summary'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textLight,
         elevation: 0,
