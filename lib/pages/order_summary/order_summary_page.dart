@@ -277,7 +277,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                             Icon(Icons.check_circle_outline, size: 20.sp),
                             SizedBox(width: 8.w),
                             Text(
-                              'Place Order',
+                              'Confirm Order',
                               style: TextStyle(
                                 fontSize: 18.sp,
                                 fontWeight: FontWeight.w600,
