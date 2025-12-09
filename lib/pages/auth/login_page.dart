@@ -37,18 +37,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
 
-    // Navigate on successful login
+    // Handle errors and navigation
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      if (next.isAuthenticated &&
-          (previous == null || !previous.isAuthenticated)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        // Navigation is handled by RootPage based on auth state
-      }
       // Only show error if it's different from previous error
       if (next.error != null && next.error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,6 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         );
       }
+      // Navigation is handled by RootPage based on auth state
     });
 
     return Scaffold(
