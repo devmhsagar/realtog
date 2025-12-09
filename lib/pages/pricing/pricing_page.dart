@@ -32,29 +32,23 @@ class _PricingPageState extends ConsumerState<PricingPage> {
     ];
   }
 
-  /// Get decluttering price based on package index (0 = first, 1 = second, 2 = third)
-  int _getDeclutteringPrice(int packageIndex) {
-    switch (packageIndex) {
-      case 0:
-        return 25;
-      case 1:
-        return 40;
-      case 2:
+  /// Get decluttering price based on max_images
+  int _getDeclutteringPrice(int maxImages) {
+    switch (maxImages) {
+      case 10:
         return 15;
+      case 20:
+        return 25;
+      case 40:
+        return 40;
       default:
         return 0;
     }
   }
 
-  /// Determine package index by comparing with all plans
-  int _getPackageIndex(String planId, List<String> allPlanIds) {
-    return allPlanIds.indexOf(planId);
-  }
-
   @override
   Widget build(BuildContext context) {
     final pricingAsync = ref.watch(pricingPlanProvider(widget.id));
-    final allPlansAsync = ref.watch(pricingPlansProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,19 +59,12 @@ class _PricingPageState extends ConsumerState<PricingPage> {
       ),
       body: pricingAsync.when(
         data: (plan) {
-          // Determine package index and calculate total price
-          final allPlans = allPlansAsync.value;
-          int packageIndex = 0;
-          int declutteringPrice = 0;
+          // Calculate decluttering price and total price
+          final int declutteringPrice = _getDeclutteringPrice(plan.maxImages);
           double totalPrice = plan.price;
-
-          if (allPlans != null) {
-            final allPlanIds = allPlans.map((p) => p.id).toList();
-            packageIndex = _getPackageIndex(plan.id, allPlanIds);
-            declutteringPrice = _getDeclutteringPrice(packageIndex);
-            if (_isDeclutteringSelected) {
-              totalPrice = plan.price + declutteringPrice;
-            }
+          
+          if (_isDeclutteringSelected) {
+            totalPrice = plan.price + declutteringPrice;
           }
 
           return SafeArea(
@@ -114,7 +101,8 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          plan.shortDescription ?? 'Professional photography service',
+                          plan.shortDescription ??
+                              'Professional photography service',
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: AppColors.textLight.withValues(alpha: 0.9),
@@ -141,8 +129,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (_isDeclutteringSelected &&
-                                        allPlans != null)
+                                    if (_isDeclutteringSelected)
                                       Text(
                                         'CA\$${plan.price.toStringAsFixed(2)}',
                                         style: TextStyle(
@@ -162,19 +149,6 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                                         color: AppColors.textLight,
                                       ),
                                     ),
-                                    // if (_isDeclutteringSelected &&
-                                    //     allPlans != null)
-                                    //   Padding(
-                                    //     padding: EdgeInsets.only(top: 2.h),
-                                    //     child: Text(
-                                    //       '+ CA\$$declutteringPrice',
-                                    //       style: TextStyle(
-                                    //         fontSize: 10.sp,
-                                    //         color: AppColors.textLight
-                                    //             .withValues(alpha: 0.8),
-                                    //       ),
-                                    //     ),
-                                    //   ),
                                   ],
                                 ),
                               ],
