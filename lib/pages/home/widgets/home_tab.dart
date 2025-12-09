@@ -128,50 +128,56 @@ class _PricingCard extends StatelessWidget {
                 topRight: Radius.circular(20.r),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        plan.name,
+                Text(
+                  plan.name,
+                  style: TextStyle(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Plan',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textLight.withValues(alpha: 0.9),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Price',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColors.textLight.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.textLight.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Text(
+                        'CA\$${plan.price.toStringAsFixed(2)}',
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: 28.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textLight,
                         ),
                       ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'Plan',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: AppColors.textLight.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.textLight.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Text(
-                    'CA\$${plan.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textLight,
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
