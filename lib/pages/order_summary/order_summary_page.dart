@@ -8,10 +8,10 @@ import '../../core/services/order_service.dart';
 
 class OrderSummaryPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
-  final int basePrice;
+  final double basePrice;
   final bool hasDecluttering;
   final int declutteringPrice;
-  final int totalPrice;
+  final double totalPrice;
   final List<String>? selectedImagePaths;
 
   const OrderSummaryPage({
@@ -159,7 +159,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildSummaryRow('Base Price', 'CA\$${widget.basePrice}'),
+                    _buildSummaryRow('Base Price', 'CA\$${widget.basePrice.toStringAsFixed(2)}'),
                     if (widget.hasDecluttering) ...[
                       SizedBox(height: 8.h),
                       _buildSummaryRow(
@@ -171,7 +171,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                     Divider(height: 24.h, thickness: 1),
                     _buildSummaryRow(
                       'Total',
-                      'CA\$${widget.totalPrice}',
+                      'CA\$${widget.totalPrice.toStringAsFixed(2)}',
                       isTotal: true,
                     ),
                   ],

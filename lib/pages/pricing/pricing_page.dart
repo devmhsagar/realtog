@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/pricing_model.dart';
 import '../../providers/pricing_provider.dart';
 
 class PricingPage extends ConsumerStatefulWidget {
@@ -17,7 +18,11 @@ class PricingPage extends ConsumerStatefulWidget {
 class _PricingPageState extends ConsumerState<PricingPage> {
   bool _isDeclutteringSelected = false;
 
-  List<String> _getPackageFeatures() {
+  List<String> _getPackageFeatures(PricingModel plan) {
+    // Use whatsIncluded from API if available, otherwise fallback to default features
+    if (plan.whatsIncluded != null && plan.whatsIncluded!.isNotEmpty) {
+      return plan.whatsIncluded!;
+    }
     return [
       'Professional high-resolution photos',
       'Enhanced image quality and editing',
@@ -64,7 +69,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
           final allPlans = allPlansAsync.value;
           int packageIndex = 0;
           int declutteringPrice = 0;
-          int totalPrice = plan.price;
+          double totalPrice = plan.price;
 
           if (allPlans != null) {
             final allPlanIds = allPlans.map((p) => p.id).toList();
@@ -109,7 +114,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'Professional photography service',
+                          plan.shortDescription ?? 'Professional photography service',
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: AppColors.textLight.withValues(alpha: 0.9),
@@ -139,7 +144,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                                     if (_isDeclutteringSelected &&
                                         allPlans != null)
                                       Text(
-                                        'CA\$${plan.price}',
+                                        'CA\$${plan.price.toStringAsFixed(2)}',
                                         style: TextStyle(
                                           fontSize: 16.sp,
                                           decoration:
@@ -150,7 +155,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                                         ),
                                       ),
                                     Text(
-                                      'CA\$$totalPrice',
+                                      'CA\$${totalPrice.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontSize: 28.sp,
                                         fontWeight: FontWeight.bold,
@@ -229,7 +234,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                     ),
                   ),
                   SizedBox(height: 12.h),
-                  ..._getPackageFeatures().map(
+                  ..._getPackageFeatures(plan).map(
                     (feature) => Padding(
                       padding: EdgeInsets.only(bottom: 8.h),
                       child: Row(

@@ -8,10 +8,10 @@ import '../../core/constants/app_colors.dart';
 
 class SelectImagesPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
-  final int basePrice;
+  final double basePrice;
   final bool hasDecluttering;
   final int declutteringPrice;
-  final int totalPrice;
+  final double totalPrice;
   final int maxImages;
 
   const SelectImagesPage({

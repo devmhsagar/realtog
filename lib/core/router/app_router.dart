@@ -96,19 +96,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             // Fallback if no data provided
             return const SelectImagesPage(
               pricingPlanId: '',
-              basePrice: 0,
+              basePrice: 0.0,
               hasDecluttering: false,
               declutteringPrice: 0,
-              totalPrice: 0,
+              totalPrice: 0.0,
               maxImages: 0,
             );
           }
           return SelectImagesPage(
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
-            basePrice: extra['basePrice'] as int? ?? 0,
+            basePrice: (extra['basePrice'] as num?)?.toDouble() ?? 0.0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
             declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
-            totalPrice: extra['totalPrice'] as int? ?? 0,
+            totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             maxImages: extra['maxImages'] as int? ?? 0,
           );
         },
@@ -122,10 +122,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             // Fallback if no data provided
             return const OrderSummaryPage(
               pricingPlanId: '',
-              basePrice: 0,
+              basePrice: 0.0,
               hasDecluttering: false,
               declutteringPrice: 0,
-              totalPrice: 0,
+              totalPrice: 0.0,
               selectedImagePaths: null,
             );
           }
@@ -139,10 +139,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           return OrderSummaryPage(
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
-            basePrice: extra['basePrice'] as int? ?? 0,
+            basePrice: (extra['basePrice'] as num?)?.toDouble() ?? 0.0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
             declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
-            totalPrice: extra['totalPrice'] as int? ?? 0,
+            totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             selectedImagePaths: imagePathsList,
           );
         },

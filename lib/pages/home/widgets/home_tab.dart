@@ -165,7 +165,7 @@ class _PricingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Text(
-                    'CA\$${plan.price}',
+                    'CA\$${plan.price.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 28.sp,
                       fontWeight: FontWeight.bold,
