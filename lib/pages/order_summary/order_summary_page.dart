@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/order_service.dart';
+import '../../providers/order_provider.dart';
 
 class OrderSummaryPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
@@ -82,6 +83,9 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
         (data) {
           // Handle success
           if (mounted) {
+            // Invalidate orders provider to refresh the orders list
+            ref.invalidate(ordersProvider);
+            
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Order placed successfully!'),
