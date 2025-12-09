@@ -263,7 +263,7 @@ class _OrderCard extends StatelessWidget {
                 _OrderDetailItem(
                   icon: Icons.attach_money,
                   label: 'Price',
-                  value: 'CA\$${order.plan.price}',
+                  value: 'CA\$${order.plan.price.toStringAsFixed(2)}',
                 ),
               ],
             ),

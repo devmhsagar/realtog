@@ -51,7 +51,7 @@ class OrderModel {
 class OrderPlan {
   final String id;
   final String name;
-  final int price;
+  final double price;
   final int maxImages;
 
   OrderPlan({
@@ -65,7 +65,7 @@ class OrderPlan {
     return OrderPlan(
       id: json['_id'] as String,
       name: json['name'] as String,
-      price: json['price'] as int,
+      price: (json['price'] as num).toDouble(),
       maxImages: json['max_images'] as int,
     );
   }
