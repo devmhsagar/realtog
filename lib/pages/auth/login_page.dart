@@ -33,6 +33,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    final token = await ref
+        .read(authNotifierProvider.notifier)
+        .signInWithGoogle();
+
+    if (token != null) {
+      // Successfully got the token from Google
+      // You can use this token to make API call later
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Google Sign In successful! Token received.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+      // TODO: Make API call with the token
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
@@ -208,9 +226,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   SizedBox(
                     height: 56.h,
                     child: OutlinedButton(
-                      onPressed: () {
-                        // TODO: Implement Google sign in
-                      },
+                      onPressed: authState.isLoading
+                          ? null
+                          : _handleGoogleSignIn,
                       style: OutlinedButton.styleFrom(
                         backgroundColor: AppColors.white,
                         foregroundColor: AppColors.textPrimary,

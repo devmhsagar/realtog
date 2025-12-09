@@ -123,6 +123,26 @@ class AuthNotifier extends Notifier<AuthState> {
     // and clear when auth state changes
     state = const AuthState();
   }
+
+  /// Sign in with Google
+  /// Returns the Google access token
+  Future<String?> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    final result = await _authService.signInWithGoogle();
+
+    return result.fold(
+      (error) {
+        state = state.copyWith(isLoading: false, error: error);
+        return null;
+      },
+      (token) {
+        state = state.copyWith(isLoading: false, error: null);
+        // Return the token - user will make API call with it later
+        return token;
+      },
+    );
+  }
 }
 
 /// Authentication provider

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "10953845070",
+    "project_id": "realtog-4b2e0",
+    "storage_bucket": "realtog-4b2e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10953845070:android:fc870bf561d6bf0d2a561f",
+        "android_client_info": {
+          "package_name": "com.example.realtog"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "10953845070-5a6s5deiqapmmh40t5s4la19lf23luui.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoyXvb8t6YFT2agIKsTxKdWZjxHAnpFw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "10953845070-5a6s5deiqapmmh40t5s4la19lf23luui.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
