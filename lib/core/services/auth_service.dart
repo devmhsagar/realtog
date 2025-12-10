@@ -216,6 +216,20 @@ class AuthService {
   /// Sign in with Google and return the access token
   /// Returns Either<String error, String token>
   Future<Either<String, String>> signInWithGoogle() async {
+    // try {
+    //   final GoogleSignInAccount? googleSignInAccount = await googleSignIn
+    //       .signIn();
+    //
+    //   // Check if user cancel the sign in
+    //   if (googleSignInAccount == null) {
+    //     return const Left('Google sign in was cancelled');
+    //   }
+    //
+    //   final GoogleSignInAuthentication googleSignInAuthentication =
+    //       await googleSignInAccount.authentication;
+    // } catch (e) {
+    //   debugPrint(e.toString());
+    // }
     try {
       // Initialize Google Sign In
       final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -231,8 +245,7 @@ class AuthService {
       }
 
       // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       // Get the access token
       final String? accessToken = googleAuth.accessToken;

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "10953845070-6ta28bnrqpudff0h10m8gu8p4jrofsh2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.realtog",
+            "certificate_hash": "acea1caa1d96a3de02a23a0c346b0c33c10dc172"
+          }
+        },
+        {
           "client_id": "10953845070-5a6s5deiqapmmh40t5s4la19lf23luui.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "10953845070-5a6s5deiqapmmh40t5s4la19lf23luui.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "10953845070-k91j3a02jr53kqtbvqa14r4a745eds98.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.realtog"
+              }
             }
           ]
         }
