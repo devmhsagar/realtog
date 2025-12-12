@@ -213,46 +213,53 @@ class AuthService {
     await _storage.delete(key: 'access_token');
   }
 
-  /// Sign in with Google and return the access token
+  /// Sign in with Google and return the ID token
   /// Returns Either<String error, String token>
   Future<Either<String, String>> signInWithGoogle() async {
     try {
       // Get the singleton GoogleSignIn instance
+      // Note: initialize() should be called once at app startup (in main.dart)
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 
-      // Initialize Google Sign In (must be called once before other methods)
-      await googleSignIn.initialize();
-
       // Authenticate the user (this replaces the old signIn method)
-      final GoogleSignInAccount googleUser = await googleSignIn.authenticate(
-        scopeHint: ['email', 'profile'],
-      );
-
-      // Request authorization for scopes to get access token
-      final GoogleSignInClientAuthorization authorization = await googleUser
-          .authorizationClient
-          .authorizeScopes(['email', 'profile']);
-
-      // Get the access token
-      final String accessToken = authorization.accessToken;
-
-      if (accessToken.isEmpty) {
-        return const Left('Failed to get access token from Google');
+      GoogleSignInAccount googleUser;
+      try {
+        googleUser = await googleSignIn.authenticate();
+      } on GoogleSignInException catch (e) {
+        debugPrint('Authentication failed: ${e.code} - ${e.description}');
+        if (e.code == GoogleSignInExceptionCode.canceled) {
+          return const Left('Google sign in was cancelled');
+        }
+        rethrow;
       }
 
-      debugPrint("Access token");
-      debugPrint(accessToken);
+      // Get the ID token from authentication
+      final GoogleSignInAuthentication auth = googleUser.authentication;
+      final String? idToken = auth.idToken;
 
-      // Return the access token
-      // The user will make API call with this token later
-      return Right(accessToken);
+      if (idToken == null || idToken.isEmpty) {
+        debugPrint('Warning: ID token is missing after authentication');
+        return const Left('Failed to get ID token from Google');
+      }
+
+      debugPrint("ID token retrieved successfully (length: ${idToken.length})");
+      debugPrint(idToken);
+
+      // Return the ID token
+      // API call will be made with this ID token
+      return Right(idToken);
     } on GoogleSignInException catch (e) {
-      // Handle Google Sign In specific exceptions
+      // Handle any other Google Sign In exceptions
+      debugPrint('GoogleSignInException: ${e.code} - ${e.description}');
       if (e.code == GoogleSignInExceptionCode.canceled) {
         return const Left('Google sign in was cancelled');
       }
+      if (e.code == GoogleSignInExceptionCode.interrupted) {
+        return const Left('Google sign in was interrupted');
+      }
       return Left('Google sign in failed: ${e.description ?? e.toString()}');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Unexpected Google sign in error: $e');
       return Left('Google sign in failed: ${e.toString()}');
     }
   }
