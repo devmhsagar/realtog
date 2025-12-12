@@ -11,6 +11,34 @@ class AuthService {
   final Dio _dio = DioService().client;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+  /// Helper method to print long strings in chunks
+  /// Flutter's debugPrint has a character limit (~1000 chars)
+  void _printLongString(String message, {String label = ''}) {
+    const int chunkSize = 800; // Print in chunks of 800 characters
+    if (message.length <= chunkSize) {
+      if (label.isNotEmpty) {
+        debugPrint('$label: $message');
+      } else {
+        debugPrint(message);
+      }
+      return;
+    }
+
+    if (label.isNotEmpty) {
+      debugPrint('$label (${message.length} chars, split into chunks):');
+    } else {
+      debugPrint('Long string (${message.length} chars, split into chunks):');
+    }
+
+    for (int i = 0; i < message.length; i += chunkSize) {
+      final int end = (i + chunkSize < message.length)
+          ? i + chunkSize
+          : message.length;
+      final String chunk = message.substring(i, end);
+      debugPrint('[$i-$end]: $chunk');
+    }
+  }
+
   /// Login with email/phone and password
   Future<Either<String, UserModel>> login({
     required String emailOrPhone,
@@ -243,7 +271,8 @@ class AuthService {
       }
 
       debugPrint("ID token retrieved successfully (length: ${idToken.length})");
-      debugPrint(idToken);
+      // Print id token in the console
+      // _printLongString(idToken, label: 'ID Token');
 
       // Return the ID token
       // API call will be made with this ID token
