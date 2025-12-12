@@ -216,41 +216,27 @@ class AuthService {
   /// Sign in with Google and return the access token
   /// Returns Either<String error, String token>
   Future<Either<String, String>> signInWithGoogle() async {
-    // try {
-    //   final GoogleSignInAccount? googleSignInAccount = await googleSignIn
-    //       .signIn();
-    //
-    //   // Check if user cancel the sign in
-    //   if (googleSignInAccount == null) {
-    //     return const Left('Google sign in was cancelled');
-    //   }
-    //
-    //   final GoogleSignInAuthentication googleSignInAuthentication =
-    //       await googleSignInAccount.authentication;
-    // } catch (e) {
-    //   debugPrint(e.toString());
-    // }
     try {
-      // Initialize Google Sign In
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
+      // Get the singleton GoogleSignIn instance
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+
+      // Initialize Google Sign In (must be called once before other methods)
+      await googleSignIn.initialize();
+
+      // Authenticate the user (this replaces the old signIn method)
+      final GoogleSignInAccount googleUser = await googleSignIn.authenticate(
+        scopeHint: ['email', 'profile'],
       );
 
-      // Sign in with Google
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      if (googleUser == null) {
-        // User cancelled the sign-in
-        return const Left('Google sign in was cancelled');
-      }
-
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      // Request authorization for scopes to get access token
+      final GoogleSignInClientAuthorization authorization = await googleUser
+          .authorizationClient
+          .authorizeScopes(['email', 'profile']);
 
       // Get the access token
-      final String? accessToken = googleAuth.accessToken;
+      final String accessToken = authorization.accessToken;
 
-      if (accessToken == null || accessToken.isEmpty) {
+      if (accessToken.isEmpty) {
         return const Left('Failed to get access token from Google');
       }
 
@@ -260,6 +246,12 @@ class AuthService {
       // Return the access token
       // The user will make API call with this token later
       return Right(accessToken);
+    } on GoogleSignInException catch (e) {
+      // Handle Google Sign In specific exceptions
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        return const Left('Google sign in was cancelled');
+      }
+      return Left('Google sign in failed: ${e.description ?? e.toString()}');
     } catch (e) {
       return Left('Google sign in failed: ${e.toString()}');
     }
