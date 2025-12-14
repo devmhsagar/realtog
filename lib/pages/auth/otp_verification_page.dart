@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:realtog/core/constants/app_colors.dart';
+import 'package:realtog/core/services/auth_service.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
   final String email;
@@ -21,6 +23,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
     (_) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -52,24 +55,40 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
     return _controllers.map((controller) => controller.text).join();
   }
 
-  void _handleVerify() {
+  Future<void> _handleVerify() async {
     final otp = _getOtp();
-    if (otp.length == 6) {
-      // TODO: Implement OTP verification
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('OTP: $otp (verification will be implemented later)'),
-          backgroundColor: AppColors.info,
-        ),
-      );
-    } else {
+    if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter the complete 6-digit OTP'),
           backgroundColor: AppColors.error,
         ),
       );
+      return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authService = AuthService();
+    final result = await authService.verifyOtp(email: widget.email, code: otp);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    result.fold(
+      (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: AppColors.error),
+        );
+      },
+      (email) {
+        // Success - navigate to reset password screen
+        context.push('/reset-password', extra: {'email': email});
+      },
+    );
   }
 
   @override
@@ -173,7 +192,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                 SizedBox(
                   height: 56.h,
                   child: ElevatedButton(
-                    onPressed: _handleVerify,
+                    onPressed: _isLoading ? null : _handleVerify,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.white,
                       foregroundColor: AppColors.primary,
@@ -181,15 +200,29 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r),
                       ),
-                    ),
-                    child: Text(
-                      'Verify OTP',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                      disabledBackgroundColor: AppColors.white.withValues(
+                        alpha: 0.6,
                       ),
                     ),
+                    child: _isLoading
+                        ? SizedBox(
+                            height: 24.h,
+                            width: 24.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Verify OTP',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(height: 16.h),
