@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:realtog/core/constants/app_colors.dart';
+import 'package:realtog/core/services/auth_service.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
   final String email;
+  final String otp;
 
-  const ResetPasswordPage({super.key, required this.email});
+  const ResetPasswordPage({super.key, required this.email, required this.otp});
 
   @override
   ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -19,6 +22,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _confirmPasswordController = TextEditingController();
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,16 +31,42 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     super.dispose();
   }
 
-  void _handleResetPassword() {
+  Future<void> _handleResetPassword() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement reset password API call
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Reset password functionality will be implemented later',
-          ),
-          backgroundColor: AppColors.info,
-        ),
+      setState(() {
+        _isLoading = true;
+      });
+
+      final authService = AuthService();
+      final result = await authService.resetPassword(
+        email: widget.email,
+        otp: widget.otp,
+        newPassword: _newPasswordController.text,
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      result.fold(
+        (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: AppColors.error),
+          );
+        },
+        (email) {
+          // Success - show success message and navigate to login
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Password reset successfully. You can now login with your new password.',
+              ),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          // Navigate to login page
+          context.go('/login');
+        },
       );
     }
   }
@@ -162,7 +192,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   SizedBox(
                     height: 56.h,
                     child: ElevatedButton(
-                      onPressed: _handleResetPassword,
+                      onPressed: _isLoading ? null : _handleResetPassword,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.white,
                         foregroundColor: AppColors.primary,
@@ -170,15 +200,29 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
-                      ),
-                      child: Text(
-                        'Reset Password',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
+                        disabledBackgroundColor: AppColors.white.withValues(
+                          alpha: 0.6,
                         ),
                       ),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 24.h,
+                              width: 24.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              'Reset Password',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                     ),
                   ),
                 ],

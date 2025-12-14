@@ -97,7 +97,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final email = extra?['email'] as String? ?? '';
-          return ResetPasswordPage(email: email);
+          final otp = extra?['otp'] as String? ?? '';
+          return ResetPasswordPage(email: email, otp: otp);
         },
       ),
       GoRoute(

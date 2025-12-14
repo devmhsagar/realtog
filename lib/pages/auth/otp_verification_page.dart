@@ -85,8 +85,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         );
       },
       (email) {
-        // Success - navigate to reset password screen
-        context.push('/reset-password', extra: {'email': email});
+        // Success - navigate to reset password screen with OTP
+        final otp = _getOtp();
+        context.push('/reset-password', extra: {'email': email, 'otp': otp});
       },
     );
   }
