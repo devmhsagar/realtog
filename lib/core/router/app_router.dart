@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../pages/auth/login_page.dart';
 import '../../pages/auth/register_page.dart';
+import '../../pages/auth/forgot_password_page.dart';
+import '../../pages/auth/otp_verification_page.dart';
 import '../../pages/home/home_page.dart';
 import '../../pages/pricing/pricing_page.dart';
 import '../../pages/select_images/select_images_page.dart';
@@ -73,6 +75,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         name: 'register',
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/otp-verification',
+        name: 'otp-verification',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final email = extra?['email'] as String? ?? '';
+          return OtpVerificationPage(email: email);
+        },
       ),
       GoRoute(
         path: '/home',

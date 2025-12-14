@@ -315,9 +315,69 @@ class AuthService {
         return const Left('Google sign in was interrupted');
       }
       return Left('Google sign in failed: ${e.description ?? e.toString()}');
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Unexpected Google sign in error: $e');
       return Left('Google sign in failed: ${e.toString()}');
+    }
+  }
+
+  /// Forgot password - send OTP to email
+  Future<Either<String, String>> forgotPassword({required String email}) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.forgotPasswordUrl,
+        data: {'email': email},
+      );
+
+      // Check for successful status codes (200-299)
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300 &&
+          response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+
+        // Check if request was successful
+        final success = responseData['success'] as bool? ?? false;
+
+        if (!success) {
+          final message =
+              responseData['message'] as String? ?? 'Failed to send OTP';
+          return Left(message);
+        }
+
+        // Extract email from response data
+        final data = responseData['data'] as Map<String, dynamic>;
+        final emailFromResponse = data['email'] as String? ?? email;
+
+        return Right(emailFromResponse);
+      } else {
+        return const Left('Failed to send OTP. Please try again.');
+      }
+    } on DioException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+
+      if (e.response != null && e.response!.data != null) {
+        final errorData = e.response!.data;
+        if (errorData is Map<String, dynamic>) {
+          if (errorData.containsKey('success') &&
+              errorData['success'] == false &&
+              errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          } else if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          }
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage =
+            'Connection timeout. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection. Please check your network.';
+      }
+
+      return Left(errorMessage);
+    } catch (e) {
+      return Left('Unexpected error: ${e.toString()}');
     }
   }
 }
