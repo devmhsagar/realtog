@@ -13,6 +13,7 @@ class ApiConstants {
   static const String forgotPasswordUrl = "/auth/forgot-password";
   static const String resetPasswordUrl = "/auth/reset-password";
   static const String verifyOtpUrl = "/otp/verify";
+  static const String resendOtpUrl = "/otp/resend";
 
   // Pricing endpoints
   static const String pricingUrl = "/pricing";

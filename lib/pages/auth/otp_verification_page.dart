@@ -243,17 +243,47 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                // TODO: Implement resend OTP
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Resend OTP functionality will be implemented later',
-                                    ),
-                                    backgroundColor: AppColors.info,
-                                  ),
-                                );
-                              },
+                              onPressed: _isLoading
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+
+                                      final authService = AuthService();
+                                      final result = await authService
+                                          .resendOtp(email: widget.email);
+
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+
+                                      result.fold(
+                                        (error) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(error),
+                                              backgroundColor: AppColors.error,
+                                            ),
+                                          );
+                                        },
+                                        (email) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'OTP resent successfully to your email',
+                                              ),
+                                              backgroundColor:
+                                                  AppColors.success,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
                               child: Text(
                                 'Resend',
                                 style: TextStyle(
