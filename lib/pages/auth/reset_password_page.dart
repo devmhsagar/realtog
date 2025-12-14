@@ -82,7 +82,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Back Button
@@ -96,133 +95,144 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                       onPressed: () => context.pop(),
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Title
+                          Text(
+                            'Reset Password',
+                            style: TextStyle(
+                              fontSize: 32.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            'Enter your new password',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 48.h),
 
-                  // Title
-                  Text(
-                    'Reset Password',
-                    style: TextStyle(
-                      fontSize: 32.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Enter your new password',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 48.h),
-
-                  // New Password Field
-                  TextFormField(
-                    controller: _newPasswordController,
-                    obscureText: _obscureNewPassword,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      hintText: 'Enter new password',
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureNewPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureNewPassword = !_obscureNewPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your new password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 20.h),
-
-                  // Confirm Password Field
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _handleResetPassword(),
-                    decoration: InputDecoration(
-                      hintText: 'Confirm new password',
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      }
-                      if (value != _newPasswordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 32.h),
-
-                  // Reset Password Button
-                  SizedBox(
-                    height: 56.h,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleResetPassword,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        foregroundColor: AppColors.primary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        disabledBackgroundColor: AppColors.white.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
-                      child: _isLoading
-                          ? SizedBox(
-                              height: 24.h,
-                              width: 24.w,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary,
+                          // New Password Field
+                          TextFormField(
+                            controller: _newPasswordController,
+                            obscureText: _obscureNewPassword,
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(
+                              hintText: 'Enter new password',
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureNewPassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                 ),
-                              ),
-                            )
-                          : Text(
-                              'Reset Password',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureNewPassword = !_obscureNewPassword;
+                                  });
+                                },
                               ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your new password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20.h),
+
+                          // Confirm Password Field
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirmPassword,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _handleResetPassword(),
+                            decoration: InputDecoration(
+                              hintText: 'Confirm new password',
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword =
+                                        !_obscureConfirmPassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              if (value != _newPasswordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 32.h),
+
+                          // Reset Password Button
+                          SizedBox(
+                            height: 56.h,
+                            child: ElevatedButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : _handleResetPassword,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.white,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                disabledBackgroundColor: AppColors.white
+                                    .withValues(alpha: 0.6),
+                              ),
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: 24.h,
+                                      width: 24.w,
+                                      child: const CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppColors.primary,
+                                            ),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Reset Password',
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
