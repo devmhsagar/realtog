@@ -7,6 +7,7 @@ class ApiConstants {
   static const String currentUserUrl = "/auth/me";
   static const String googleAuthUrl = "/auth/google";
   static const String googleAuthCallbackUrl = "/auth/google";
+  static const String googleAuthUrlById = "/auth/google/mobile";
   static const String googleAuthSuccessUrl = "/auth/google/success";
   static const String googleAuthFailureUrl = "/auth/google/failure";
   static const String forgotPasswordUrl = "/auth/forgot-password";

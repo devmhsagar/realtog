@@ -274,6 +274,34 @@ class AuthService {
       // Print id token in the console
       // _printLongString(idToken, label: 'ID Token');
 
+      // Make POST API call with the ID token
+      try {
+        final response = await _dio.post(
+          ApiConstants.googleAuthUrlById,
+          data: {'idToken': idToken},
+        );
+
+        // Print the response in console
+        debugPrint('Google Auth API Response:');
+        debugPrint('Status Code: ${response.statusCode}');
+        if (response.data != null) {
+          _printLongString(response.data.toString(), label: 'Response Data');
+        } else {
+          debugPrint('Response Data: null');
+        }
+      } catch (e) {
+        debugPrint('Error calling Google Auth API: $e');
+        if (e is DioException && e.response != null) {
+          debugPrint('Error Response Status: ${e.response?.statusCode}');
+          if (e.response?.data != null) {
+            _printLongString(
+              e.response!.data.toString(),
+              label: 'Error Response Data',
+            );
+          }
+        }
+      }
+
       // Return the ID token
       // API call will be made with this ID token
       return Right(idToken);
