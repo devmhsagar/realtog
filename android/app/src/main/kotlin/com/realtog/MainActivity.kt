@@ -1,4 +1,4 @@
-package com.example.realtog
+package com.realtog
 
 import io.flutter.embedding.android.FlutterActivity
 

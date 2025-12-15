@@ -8,20 +8,6 @@
 	<string>Realtog</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-	<!-- Google Sign-in Section -->
-	<key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <!-- REVERSED_CLIENT_ID -->
-                <string>com.googleusercontent.apps.10953845070-k91j3a02jr53kqtbvqa14r4a745eds98</string>
-            </array>
-        </dict>
-    </array>
-    <!-- End of the Google Sign-in Section -->
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
