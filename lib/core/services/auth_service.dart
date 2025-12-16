@@ -243,9 +243,6 @@ class AuthService {
 
   /// Sign in with Google and return the ID token
   /// Returns Either<String error, String token>
-  // iOS Client ID extracted from Info.plist reversed client ID
-  // Reversed: com.googleusercontent.apps.363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh
-  // Actual: 363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh.apps.googleusercontent.com
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     // Required for iOS - client ID from Google Cloud Console
