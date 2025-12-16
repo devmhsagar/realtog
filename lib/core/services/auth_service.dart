@@ -243,83 +243,108 @@ class AuthService {
 
   /// Sign in with Google and return the ID token
   /// Returns Either<String error, String token>
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+
   Future<Either<String, String>> signInWithGoogle() async {
     try {
-      // Get the singleton GoogleSignIn instance
-      // Note: initialize() should be called once at app startup (in main.dart)
-      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+      final GoogleSignInAccount? user = await _googleSignIn.signIn();
 
-      // Authenticate the user (this replaces the old signIn method)
-      GoogleSignInAccount googleUser;
-      try {
-        googleUser = await googleSignIn.authenticate();
-      } on GoogleSignInException catch (e) {
-        debugPrint('Authentication failed: ${e.code} - ${e.description}');
-        if (e.code == GoogleSignInExceptionCode.canceled) {
-          return const Left('Google sign in was cancelled');
-        }
-        rethrow;
-      }
-
-      // Get the ID token from authentication
-      final GoogleSignInAuthentication auth = googleUser.authentication;
-      final String? idToken = auth.idToken;
-
-      if (idToken == null || idToken.isEmpty) {
-        debugPrint('Warning: ID token is missing after authentication');
-        return const Left('Failed to get ID token from Google');
-      }
-
-      debugPrint("ID token retrieved successfully (length: ${idToken.length})");
-      // Print id token in the console
-      // _printLongString(idToken, label: 'ID Token');
-
-      // Make POST API call with the ID token
-      try {
-        final response = await _dio.post(
-          ApiConstants.googleAuthUrlById,
-          data: {'idToken': idToken},
-        );
-
-        // Print the response in console
-        debugPrint('Google Auth API Response:');
-        debugPrint('Status Code: ${response.statusCode}');
-        if (response.data != null) {
-          _printLongString(response.data.toString(), label: 'Response Data');
-        } else {
-          debugPrint('Response Data: null');
-        }
-      } catch (e) {
-        debugPrint('Error calling Google Auth API: $e');
-        if (e is DioException && e.response != null) {
-          debugPrint('Error Response Status: ${e.response?.statusCode}');
-          if (e.response?.data != null) {
-            _printLongString(
-              e.response!.data.toString(),
-              label: 'Error Response Data',
-            );
-          }
-        }
-      }
-
-      // Return the ID token
-      // API call will be made with this ID token
-      return Right(idToken);
-    } on GoogleSignInException catch (e) {
-      // Handle any other Google Sign In exceptions
-      debugPrint('GoogleSignInException: ${e.code} - ${e.description}');
-      if (e.code == GoogleSignInExceptionCode.canceled) {
+      if (user == null) {
+        // User cancelled
         return const Left('Google sign in was cancelled');
       }
-      if (e.code == GoogleSignInExceptionCode.interrupted) {
-        return const Left('Google sign in was interrupted');
-      }
-      return Left('Google sign in failed: ${e.description ?? e.toString()}');
+
+      final GoogleSignInAuthentication auth = await user.authentication;
+
+      print('Name: ${user.displayName}');
+      print('Email: ${user.email}');
+      print('ID Token: ${auth.idToken}');
+      print('Access Token: ${auth.accessToken}');
+
+      return const Left('Google sign in was cancelled 2');
     } catch (e) {
-      debugPrint('Unexpected Google sign in error: $e');
+      print('Google Sign-In error: $e');
       return Left('Google sign in failed: ${e.toString()}');
     }
   }
+
+  // Future<Either<String, String>> signInWithGoogle() async {
+  //   try {
+  //     // Get the singleton GoogleSignIn instance
+  //     // Note: initialize() should be called once at app startup (in main.dart)
+  //     final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+  //
+  //     // Authenticate the user (this replaces the old signIn method)
+  //     GoogleSignInAccount googleUser;
+  //     try {
+  //       googleUser = await googleSignIn.authenticate();
+  //     } on GoogleSignInException catch (e) {
+  //       debugPrint('Authentication failed: ${e.code} - ${e.description}');
+  //       if (e.code == GoogleSignInExceptionCode.canceled) {
+  //         return const Left('Google sign in was cancelled');
+  //       }
+  //       rethrow;
+  //     }
+  //
+  //     // Get the ID token from authentication
+  //     final GoogleSignInAuthentication auth = googleUser.authentication;
+  //     final String? idToken = auth.idToken;
+  //
+  //     if (idToken == null || idToken.isEmpty) {
+  //       debugPrint('Warning: ID token is missing after authentication');
+  //       return const Left('Failed to get ID token from Google');
+  //     }
+  //
+  //     debugPrint("ID token retrieved successfully (length: ${idToken.length})");
+  //     // Print id token in the console
+  //     // _printLongString(idToken, label: 'ID Token');
+  //
+  //     // Make POST API call with the ID token
+  //     try {
+  //       final response = await _dio.post(
+  //         ApiConstants.googleAuthUrlById,
+  //         data: {'idToken': idToken},
+  //       );
+  //
+  //       // Print the response in console
+  //       debugPrint('Google Auth API Response:');
+  //       debugPrint('Status Code: ${response.statusCode}');
+  //       if (response.data != null) {
+  //         _printLongString(response.data.toString(), label: 'Response Data');
+  //       } else {
+  //         debugPrint('Response Data: null');
+  //       }
+  //     } catch (e) {
+  //       debugPrint('Error calling Google Auth API: $e');
+  //       if (e is DioException && e.response != null) {
+  //         debugPrint('Error Response Status: ${e.response?.statusCode}');
+  //         if (e.response?.data != null) {
+  //           _printLongString(
+  //             e.response!.data.toString(),
+  //             label: 'Error Response Data',
+  //           );
+  //         }
+  //       }
+  //     }
+  //
+  //     // Return the ID token
+  //     // API call will be made with this ID token
+  //     return Right(idToken);
+  //   } on GoogleSignInException catch (e) {
+  //     // Handle any other Google Sign In exceptions
+  //     debugPrint('GoogleSignInException: ${e.code} - ${e.description}');
+  //     if (e.code == GoogleSignInExceptionCode.canceled) {
+  //       return const Left('Google sign in was cancelled');
+  //     }
+  //     if (e.code == GoogleSignInExceptionCode.interrupted) {
+  //       return const Left('Google sign in was interrupted');
+  //     }
+  //     return Left('Google sign in failed: ${e.description ?? e.toString()}');
+  //   } catch (e) {
+  //     debugPrint('Unexpected Google sign in error: $e');
+  //     return Left('Google sign in failed: ${e.toString()}');
+  //   }
+  // }
 
   /// Forgot password - send OTP to email
   Future<Either<String, String>> forgotPassword({required String email}) async {
