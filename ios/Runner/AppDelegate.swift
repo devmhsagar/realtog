@@ -12,11 +12,14 @@ import UIKit
   }
 
   // Handle URL callbacks for Google Sign-In
+  // The google_sign_in plugin will automatically handle URLs with the scheme
+  // configured in Info.plist (com.googleusercontent.apps.*)
   override func application(
     _ app: UIApplication,
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]
   ) -> Bool {
+    // Let Flutter plugins (including google_sign_in) handle the URL
     return super.application(app, open: url, options: options)
   }
 }

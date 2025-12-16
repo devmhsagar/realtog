@@ -243,7 +243,15 @@ class AuthService {
 
   /// Sign in with Google and return the ID token
   /// Returns Either<String error, String token>
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  // iOS Client ID extracted from Info.plist reversed client ID
+  // Reversed: com.googleusercontent.apps.363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh
+  // Actual: 363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh.apps.googleusercontent.com
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    // Required for iOS - client ID from Google Cloud Console
+    clientId:
+        '363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh.apps.googleusercontent.com',
+  );
 
   Future<Either<String, String>> signInWithGoogle() async {
     try {
@@ -256,14 +264,51 @@ class AuthService {
 
       final GoogleSignInAuthentication auth = await user.authentication;
 
-      print('Name: ${user.displayName}');
-      print('Email: ${user.email}');
-      print('ID Token: ${auth.idToken}');
-      print('Access Token: ${auth.accessToken}');
+      // Get the ID token
+      final String? idToken = auth.idToken;
 
-      return const Left('Google sign in was cancelled 2');
+      if (idToken == null || idToken.isEmpty) {
+        debugPrint('Warning: ID token is missing after authentication');
+        return const Left('Failed to get ID token from Google');
+      }
+
+      debugPrint('Google Sign-In successful');
+      debugPrint('Name: ${user.displayName}');
+      debugPrint('Email: ${user.email}');
+      debugPrint('ID Token length: ${idToken.length}');
+
+      // Make Auth API call with the ID token
+      try {
+        final response = await _dio.post(
+          ApiConstants.googleAuthUrlById,
+          data: {'idToken': idToken},
+        );
+
+        // Print the response in console
+        debugPrint('Google Auth API Response:');
+        debugPrint('Status Code: ${response.statusCode}');
+        if (response.data != null) {
+          _printLongString(response.data.toString(), label: 'Response Data');
+        } else {
+          debugPrint('Response Data: null');
+        }
+      } catch (e) {
+        debugPrint('Error calling Google Auth API: $e');
+        if (e is DioException && e.response != null) {
+          debugPrint('Error Response Status: ${e.response?.statusCode}');
+          if (e.response?.data != null) {
+            _printLongString(
+              e.response!.data.toString(),
+              label: 'Error Response Data',
+            );
+          }
+        }
+      }
+
+      // Return the ID token
+      return Right(idToken);
     } catch (e) {
-      print('Google Sign-In error: $e');
+      debugPrint('Google Sign-In error: $e');
       return Left('Google sign in failed: ${e.toString()}');
     }
   }
