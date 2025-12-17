@@ -28,6 +28,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Google Sign-In Web Client ID (for ID token)
+        resValue("string", "default_web_client_id", "363337467133-0ijfok2qta8nb5ma7o98ho2pefrhvsps.apps.googleusercontent.com")
     }
 
     buildTypes {

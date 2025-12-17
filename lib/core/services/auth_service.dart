@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -39,6 +40,56 @@ class AuthService {
     }
   }
 
+  /// Reusable function to handle auth API response
+  /// Extracts token, stores it, and parses user from response
+  Future<Either<String, UserModel>> _handleAuthResponse(
+    Response<dynamic> response,
+  ) async {
+    // Check for successful status codes (200-299)
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300 &&
+        response.data != null) {
+      final responseData = response.data as Map<String, dynamic>;
+      final data = responseData['data'] as Map<String, dynamic>;
+
+      // Store token in secure storage
+      final token = data['token'] as String?;
+      if (token != null && token.isNotEmpty) {
+        await _storage.write(key: 'access_token', value: token);
+      }
+
+      // Parse user from response
+      final userJson = data['user'] as Map<String, dynamic>;
+      final user = UserModel.fromJson(userJson);
+
+      return Right(user);
+    } else {
+      return const Left('Authentication failed. Please try again.');
+    }
+  }
+
+  /// Helper function to extract error message from DioException
+  String _extractErrorMessage(DioException e) {
+    String errorMessage = 'An error occurred. Please try again.';
+
+    if (e.response != null && e.response!.data != null) {
+      final errorData = e.response!.data;
+      if (errorData is Map<String, dynamic> &&
+          errorData.containsKey('message')) {
+        errorMessage = errorData['message'] as String;
+      }
+    } else if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      errorMessage =
+          'Connection timeout. Please check your internet connection.';
+    } else if (e.type == DioExceptionType.connectionError) {
+      errorMessage = 'No internet connection. Please check your network.';
+    }
+
+    return errorMessage;
+  }
+
   /// Login with email/phone and password
   Future<Either<String, UserModel>> login({
     required String emailOrPhone,
@@ -50,46 +101,9 @@ class AuthService {
         data: {'emailOrPhone': emailOrPhone, 'password': password},
       );
 
-      // Check for successful status codes (200-299)
-      if (response.statusCode != null &&
-          response.statusCode! >= 200 &&
-          response.statusCode! < 300 &&
-          response.data != null) {
-        final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['data'] as Map<String, dynamic>;
-
-        // Store token in secure storage
-        final token = data['token'] as String?;
-        if (token != null && token.isNotEmpty) {
-          await _storage.write(key: 'access_token', value: token);
-        }
-
-        // Parse user from response
-        final userJson = data['user'] as Map<String, dynamic>;
-        final user = UserModel.fromJson(userJson);
-
-        return Right(user);
-      } else {
-        return const Left('Login failed. Please try again.');
-      }
+      return await _handleAuthResponse(response);
     } on DioException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.response != null && e.response!.data != null) {
-        final errorData = e.response!.data;
-        if (errorData is Map<String, dynamic> &&
-            errorData.containsKey('message')) {
-          errorMessage = errorData['message'] as String;
-        }
-      } else if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        errorMessage =
-            'Connection timeout. Please check your internet connection.';
-      } else if (e.type == DioExceptionType.connectionError) {
-        errorMessage = 'No internet connection. Please check your network.';
-      }
-
-      return Left(errorMessage);
+      return Left(_extractErrorMessage(e));
     } catch (e) {
       return Left('Unexpected error: ${e.toString()}');
     }
@@ -241,23 +255,29 @@ class AuthService {
     await _storage.delete(key: 'access_token');
   }
 
-  /// Sign in with Google and return the ID token
-  /// Returns Either<String error, String token>
+  /// Sign in with Google and return the user
+  /// Returns Either<String error, UserModel>
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     // Required for iOS - client ID from Google Cloud Console (iOS OAuth client)
     clientId:
         '363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh.apps.googleusercontent.com',
     // Required for Android to get ID tokens - OAuth 2.0 Web client ID from Google Cloud Console
-    // This should be the Web application client ID (not iOS or Android client ID)
-    // If you don't have a Web client ID, create one in Google Cloud Console > APIs & Services > Credentials
     serverClientId:
-        '363337467133-l24o0nlfvo1f61235mud2nd14a3ub560.apps.googleusercontent.com',
+        '363337467133-0ijfok2qta8nb5ma7o98ho2pefrhvsps.apps.googleusercontent.com',
   );
 
-  Future<Either<String, String>> signInWithGoogle() async {
+  Future<Either<String, UserModel>> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? user = await _googleSignIn.signIn();
+      GoogleSignInAccount? user;
+      try {
+        user = await _googleSignIn.signIn();
+      } on PlatformException catch (e) {
+        return Left('Google sign in failed: ${e.message ?? e.code}');
+      } catch (e) {
+        debugPrint('Error during Google Sign-In: $e');
+        return Left('Google sign in failed: ${e.toString()}');
+      }
 
       if (user == null) {
         // User cancelled
@@ -266,38 +286,14 @@ class AuthService {
 
       final GoogleSignInAuthentication auth = await user.authentication;
 
-      // Debug information
-      debugPrint('Google Sign-In Authentication Details:');
-      debugPrint('Name: ${user.displayName}');
-      debugPrint('Email: ${user.email}');
-      debugPrint('ID: ${user.id}');
-      debugPrint(
-        'Access Token: ${auth.accessToken != null ? "Present (${auth.accessToken!.length} chars)" : "null"}',
-      );
-      debugPrint(
-        'ID Token: ${auth.idToken != null ? "Present (${auth.idToken!.length} chars)" : "null"}',
-      );
-
       // Get the ID token
       final String? idToken = auth.idToken;
 
       if (idToken == null || idToken.isEmpty) {
-        debugPrint('ERROR: ID token is missing after authentication');
-        debugPrint('This usually means:');
-        debugPrint('1. For Android: serverClientId is missing or incorrect');
-        debugPrint(
-          '2. The OAuth 2.0 Web client ID is not configured in GoogleSignIn',
-        );
-        debugPrint(
-          '3. The SHA-1 fingerprint is not registered in Google Cloud Console',
-        );
         return const Left(
           'Failed to get ID token from Google. Please check serverClientId configuration.',
         );
       }
-
-      debugPrint('Google Sign-In successful');
-      debugPrint('ID Token length: ${idToken.length}');
 
       // Make Auth API call with the ID token
       try {
@@ -306,29 +302,14 @@ class AuthService {
           data: {'idToken': idToken},
         );
 
-        // Print the response in console
-        debugPrint('Google Auth API Response:');
-        debugPrint('Status Code: ${response.statusCode}');
-        if (response.data != null) {
-          _printLongString(response.data.toString(), label: 'Response Data');
-        } else {
-          debugPrint('Response Data: null');
-        }
+        // Use the same reusable function to handle the response
+        return await _handleAuthResponse(response);
+      } on DioException catch (e) {
+        return Left(_extractErrorMessage(e));
       } catch (e) {
         debugPrint('Error calling Google Auth API: $e');
-        if (e is DioException && e.response != null) {
-          debugPrint('Error Response Status: ${e.response?.statusCode}');
-          if (e.response?.data != null) {
-            _printLongString(
-              e.response!.data.toString(),
-              label: 'Error Response Data',
-            );
-          }
-        }
+        return Left('Google sign in failed: ${e.toString()}');
       }
-
-      // Return the ID token
-      return Right(idToken);
     } catch (e) {
       debugPrint('Google Sign-In error: $e');
       return Left('Google sign in failed: ${e.toString()}');

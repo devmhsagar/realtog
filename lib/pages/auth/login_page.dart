@@ -34,21 +34,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleGoogleSignIn() async {
-    final token = await ref
-        .read(authNotifierProvider.notifier)
-        .signInWithGoogle();
-
-    if (token != null) {
-      // Successfully got the token from Google
-      // You can use this token to make API call later
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Google Sign In successful! Token received.'),
-          backgroundColor: AppColors.primary,
-        ),
-      );
-      // TODO: Make API call with the token
-    }
+    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    // Navigation is handled by RootPage based on auth state
   }
 
   @override
