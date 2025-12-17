@@ -245,9 +245,14 @@ class AuthService {
   /// Returns Either<String error, String token>
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
-    // Required for iOS - client ID from Google Cloud Console
+    // Required for iOS - client ID from Google Cloud Console (iOS OAuth client)
     clientId:
         '363337467133-ljjgk6n3204csqm7skqf6tqfcqv7ufvh.apps.googleusercontent.com',
+    // Required for Android to get ID tokens - OAuth 2.0 Web client ID from Google Cloud Console
+    // This should be the Web application client ID (not iOS or Android client ID)
+    // If you don't have a Web client ID, create one in Google Cloud Console > APIs & Services > Credentials
+    serverClientId:
+        '363337467133-l24o0nlfvo1f61235mud2nd14a3ub560.apps.googleusercontent.com',
   );
 
   Future<Either<String, String>> signInWithGoogle() async {
@@ -261,17 +266,37 @@ class AuthService {
 
       final GoogleSignInAuthentication auth = await user.authentication;
 
+      // Debug information
+      debugPrint('Google Sign-In Authentication Details:');
+      debugPrint('Name: ${user.displayName}');
+      debugPrint('Email: ${user.email}');
+      debugPrint('ID: ${user.id}');
+      debugPrint(
+        'Access Token: ${auth.accessToken != null ? "Present (${auth.accessToken!.length} chars)" : "null"}',
+      );
+      debugPrint(
+        'ID Token: ${auth.idToken != null ? "Present (${auth.idToken!.length} chars)" : "null"}',
+      );
+
       // Get the ID token
       final String? idToken = auth.idToken;
 
       if (idToken == null || idToken.isEmpty) {
-        debugPrint('Warning: ID token is missing after authentication');
-        return const Left('Failed to get ID token from Google');
+        debugPrint('ERROR: ID token is missing after authentication');
+        debugPrint('This usually means:');
+        debugPrint('1. For Android: serverClientId is missing or incorrect');
+        debugPrint(
+          '2. The OAuth 2.0 Web client ID is not configured in GoogleSignIn',
+        );
+        debugPrint(
+          '3. The SHA-1 fingerprint is not registered in Google Cloud Console',
+        );
+        return const Left(
+          'Failed to get ID token from Google. Please check serverClientId configuration.',
+        );
       }
 
       debugPrint('Google Sign-In successful');
-      debugPrint('Name: ${user.displayName}');
-      debugPrint('Email: ${user.email}');
       debugPrint('ID Token length: ${idToken.length}');
 
       // Make Auth API call with the ID token
