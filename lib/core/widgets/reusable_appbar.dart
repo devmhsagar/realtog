@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../constants/app_colors.dart';
 
@@ -13,86 +14,102 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.appBarBackground,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Main header with logo, brand name, and tagline - centered
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  Image.asset(
-                    'assets/logo/appbar_logo.png',
-                    height: 32.h,
-                    width: 32.w,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light, // White icons
+        statusBarBrightness: Brightness.dark, // For iOS
+      ),
+      child: ClipRect(
+        child: Container(
+          color: AppColors.appBarBackground,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Main header with logo, brand name, and tagline - centered
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      Image.asset(
+                        'assets/logo/appbar_logo.png',
                         height: 32.h,
                         width: 32.w,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(4.r),
-                        ),
-                        child: Icon(
-                          Icons.image_outlined,
-                          size: 20.sp,
-                          color: AppColors.textLight,
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(width: 6.w),
-                  // Brand name and tagline column
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Brand name
-                      Text(
-                        'R E A L T O G',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textLight,
-                          letterSpacing: 1.2,
-                        ),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 32.h,
+                            width: 32.w,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(4.r),
+                            ),
+                            child: Icon(
+                              Icons.image_outlined,
+                              size: 20.sp,
+                              color: AppColors.textLight,
+                            ),
+                          );
+                        },
                       ),
-                      // Tagline directly below REALTOG
-                      Text(
-                        'YOUR PHONE. YOUR PHOTOS. YOUR EDGE',
-                        style: TextStyle(
-                          fontSize: 7.5.sp,
-                          color: AppColors.textLight.withValues(alpha: 0.9),
-                          letterSpacing: 0.3,
-                        ),
+                      SizedBox(width: 6.w),
+                      // Brand name and tagline column
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Brand name
+                          Text(
+                            'R E A L T O G',
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textLight,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          // Tagline directly below REALTOG
+                          Text(
+                            'YOUR PHONE. YOUR PHOTOS. YOUR EDGE',
+                            style: TextStyle(
+                              fontSize: 7.5.sp,
+                              color: AppColors.textLight.withValues(alpha: 0.9),
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            // Section title bar
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-              color: AppColors.appBarTitleBackground,
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textLight,
                 ),
-                textAlign: TextAlign.center,
-              ),
+                // Section title bar - flush with bottom
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 10.h,
+                  ),
+                  color: AppColors.appBarTitleBackground,
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textLight,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -91,10 +91,7 @@ class _PricingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColors.primary),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,8 +131,8 @@ class _PricingCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(12.r),
-                bottomRight: Radius.circular(12.r),
+                bottomLeft: Radius.circular(11.r),
+                bottomRight: Radius.circular(11.r),
               ),
             ),
             child: Row(
