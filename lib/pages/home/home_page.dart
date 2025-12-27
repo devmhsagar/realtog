@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/reusable_appbar.dart';
 import '../../providers/auth_provider.dart';
 import 'widgets/home_tab.dart';
 import 'widgets/orders_tab.dart';
@@ -25,12 +26,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(_getAppBarTitle(_currentIndex)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textLight,
-        elevation: 0,
-      ),
+      appBar: ReusableAppBar(title: _getAppBarTitle(_currentIndex)),
       body: _buildBody(_currentIndex, user),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

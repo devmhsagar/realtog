@@ -22,15 +22,6 @@ class HomeTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pricing Plans Section
-            Text(
-              'Pricing Plans',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
             SizedBox(height: 16.h),
             pricingAsync.when(
               data: (pricingPlans) => Column(

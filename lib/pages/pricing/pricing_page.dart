@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/reusable_appbar.dart';
 import '../../models/pricing_model.dart';
 import '../../providers/pricing_provider.dart';
 
@@ -51,11 +52,8 @@ class _PricingPageState extends ConsumerState<PricingPage> {
     final pricingAsync = ref.watch(pricingPlanProvider(widget.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pricing Details'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textLight,
-        elevation: 0,
+      appBar: const ReusableAppBar(
+        title: 'Pricing Details',
       ),
       body: pricingAsync.when(
         data: (plan) {

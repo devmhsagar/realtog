@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/reusable_appbar.dart';
 import '../../core/services/order_service.dart';
 import '../../providers/order_provider.dart';
 
@@ -123,11 +124,8 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Summary'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textLight,
-        elevation: 0,
+      appBar: const ReusableAppBar(
+        title: 'Order Summary',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

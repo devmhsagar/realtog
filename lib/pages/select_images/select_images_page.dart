@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/reusable_appbar.dart';
 
 class SelectImagesPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
@@ -162,11 +163,8 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
     final int remainingSlots = widget.maxImages - _selectedImages.length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Images'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textLight,
-        elevation: 0,
+      appBar: const ReusableAppBar(
+        title: 'Select Images',
       ),
       body: SafeArea(
         child: Column(
