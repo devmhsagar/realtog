@@ -6,16 +6,16 @@ class AppColors {
   AppColors._();
 
   // Logo colors
-  static const Color vibrantGreen = Color(0xFF56AD43);
+  static const Color vibrantGreen = Color(0xFF16A27D);
   static const Color white = Color(0xFFFBFCFC);
   static const Color tealAqua = Color(0xFF09A087);
   static const Color lightTurquoise = Color(0xFF91CFC5);
   static const Color darkShadow = Color(0xFF1C221D);
 
-  // Primary colors - Using vibrant green as primary
-  static const Color primary = vibrantGreen; // #56AD43
-  static const Color primaryDark = Color(0xFF459A35); // Darker green
-  static const Color primaryLight = Color(0xFF6BC058); // Lighter green
+  // Primary colors - Using new primary color
+  static const Color primary = vibrantGreen; // #16A27D
+  static const Color primaryDark = Color(0xFF128A6B); // Darker green
+  static const Color primaryLight = Color(0xFF1AB894); // Lighter green
 
   // Secondary colors - Teal/aqua tones
   static const Color secondary = tealAqua; // #09A087
@@ -51,7 +51,7 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [
       lightTurquoise, // #91CFC5 - upper highlight
-      vibrantGreen, // #56AD43 - bottom-right accent
+      vibrantGreen, // #16A27D - bottom-right accent
     ],
   );
 
