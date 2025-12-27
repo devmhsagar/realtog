@@ -26,6 +26,7 @@ class AppColors {
   static const Color background = white; // #FBFCFC
   static const Color backgroundDark = darkShadow; // #1C221D
   static const Color appBarBackground = Color(0xFF1C221E); // #1C221E
+  static const Color appBarTitleBackground = Color(0xFF494C55); // #494C55
   static const Color surface = white; // #FBFCFC
   static const Color surfaceDark = Color(0xFF2A332C); // Dark surface
 

@@ -52,22 +52,22 @@ class _HomePageState extends ConsumerState<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: 'Home',
+            label: 'HOME',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag_outlined),
             activeIcon: Icon(Icons.shopping_bag),
-            label: 'Orders',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined),
-            activeIcon: Icon(Icons.message),
-            label: 'Messages',
+            label: 'ORDERS',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'PROFILE',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mail_outline),
+            activeIcon: Icon(Icons.mail),
+            label: 'CHAT',
           ),
         ],
       ),
@@ -77,15 +77,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   String _getAppBarTitle(int index) {
     switch (index) {
       case 0:
-        return 'Home';
+        return 'Select Package';
       case 1:
-        return 'Orders';
+        return 'Pricing Details';
       case 2:
-        return 'Messages';
-      case 3:
         return 'Profile';
+      case 3:
+        return 'Messages';
       default:
-        return 'Home';
+        return 'Select Package';
     }
   }
 
@@ -96,9 +96,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       case 1:
         return const OrdersTab();
       case 2:
-        return const MessagesTab();
-      case 3:
         return const ProfileTab();
+      case 3:
+        return const MessagesTab();
       default:
         return HomeTab(user: user);
     }

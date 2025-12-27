@@ -6,10 +6,7 @@ import '../constants/app_colors.dart';
 class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
-  const ReusableAppBar({
-    super.key,
-    required this.title,
-  });
+  const ReusableAppBar({super.key, required this.title});
 
   @override
   Size get preferredSize => Size.fromHeight(120.h);
@@ -22,10 +19,11 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: Column(
           children: [
-            // Main header with logo, brand name, and tagline
+            // Main header with logo, brand name, and tagline - centered
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Logo
                   Image.asset(
@@ -33,33 +31,48 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 32.h,
                     width: 32.w,
                     fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 32.h,
+                        width: 32.w,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 20.sp,
+                          color: AppColors.textLight,
+                        ),
+                      );
+                    },
                   ),
-                  SizedBox(width: 12.w),
-                  // Brand name and tagline
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'REALTOG',
-                          style: TextStyle(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textLight,
-                            letterSpacing: 1.2,
-                          ),
+                  SizedBox(width: 6.w),
+                  // Brand name and tagline column
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Brand name
+                      Text(
+                        'R E A L T O G',
+                        style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textLight,
+                          letterSpacing: 1.2,
                         ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          'YOUR PHONE, YOUR PHOTOS, YOUR EDGE.',
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            color: AppColors.textLight.withValues(alpha: 0.9),
-                            letterSpacing: 0.5,
-                          ),
+                      ),
+                      // Tagline directly below REALTOG
+                      Text(
+                        'YOUR PHONE. YOUR PHOTOS. YOUR EDGE',
+                        style: TextStyle(
+                          fontSize: 7.5.sp,
+                          color: AppColors.textLight.withValues(alpha: 0.9),
+                          letterSpacing: 0.3,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -67,8 +80,8 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
             // Section title bar
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-              color: AppColors.appBarBackground.withValues(alpha: 0.95),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+              color: AppColors.appBarTitleBackground,
               child: Text(
                 title,
                 style: TextStyle(
@@ -85,4 +98,3 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-
