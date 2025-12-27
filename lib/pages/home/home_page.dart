@@ -6,6 +6,7 @@ import '../../core/widgets/reusable_appbar.dart';
 import '../../providers/auth_provider.dart';
 import 'widgets/home_tab.dart';
 import 'widgets/orders_tab.dart';
+import 'widgets/faq_tab.dart';
 import 'widgets/messages_tab.dart';
 import 'widgets/profile_tab.dart';
 
@@ -28,48 +29,57 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: AppColors.background,
       appBar: ReusableAppBar(title: _getAppBarTitle(_currentIndex)),
       body: _buildBody(_currentIndex, user),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        backgroundColor: AppColors.surface,
-        elevation: 8,
-        selectedLabelStyle: TextStyle(
-          fontSize: 12.sp,
-          fontWeight: FontWeight.w600,
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          iconSize: 20.sp,
+          selectedLabelStyle: TextStyle(
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w400,
+          ),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'HOME',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_bag_outlined),
+              activeIcon: Icon(Icons.shopping_bag),
+              label: 'ORDERS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.help_outline),
+              activeIcon: Icon(Icons.help),
+              label: 'FAQ\'S',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'PROFILE',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.mail_outline),
+              activeIcon: Icon(Icons.mail),
+              label: 'CHAT',
+            ),
+          ],
         ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 12.sp,
-          fontWeight: FontWeight.w400,
-        ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'HOME',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            activeIcon: Icon(Icons.shopping_bag),
-            label: 'ORDERS',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'PROFILE',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mail_outline),
-            activeIcon: Icon(Icons.mail),
-            label: 'CHAT',
-          ),
-        ],
       ),
     );
   }
@@ -81,8 +91,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       case 1:
         return 'Pricing Details';
       case 2:
-        return 'Profile';
+        return 'FAQ\'S';
       case 3:
+        return 'Profile';
+      case 4:
         return 'Messages';
       default:
         return 'Select Package';
@@ -96,8 +108,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       case 1:
         return const OrdersTab();
       case 2:
-        return const ProfileTab();
+        return const FaqTab();
       case 3:
+        return const ProfileTab();
+      case 4:
         return const MessagesTab();
       default:
         return HomeTab(user: user);

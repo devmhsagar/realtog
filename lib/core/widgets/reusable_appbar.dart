@@ -39,7 +39,7 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
                     children: [
                       // Logo
                       Image.asset(
-                        'assets/logo/appbar_logo.png',
+                        'assets/logo/123.png',
                         height: 32.h,
                         width: 32.w,
                         fit: BoxFit.contain,
