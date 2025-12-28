@@ -285,9 +285,9 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.textLight,
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(6.r),
                         ),
                         elevation: 2,
                       ),

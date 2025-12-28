@@ -86,7 +86,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
           if (mounted) {
             // Invalidate orders provider to refresh the orders list
             ref.invalidate(ordersProvider);
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Order placed successfully!'),
@@ -124,9 +124,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const ReusableAppBar(
-        title: 'Order Summary',
-      ),
+      appBar: const ReusableAppBar(title: 'Order Summary'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.w),
@@ -161,7 +159,10 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildSummaryRow('Base Price', 'CA\$${widget.basePrice.toStringAsFixed(2)}'),
+                    _buildSummaryRow(
+                      'Base Price',
+                      'CA\$${widget.basePrice.toStringAsFixed(2)}',
+                    ),
                     if (widget.hasDecluttering) ...[
                       SizedBox(height: 8.h),
                       _buildSummaryRow(
@@ -253,9 +254,9 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.textLight,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(6.r),
                     ),
                     elevation: 2,
                     disabledBackgroundColor: AppColors.primary.withValues(
@@ -273,42 +274,27 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                             ),
                           ),
                         )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle_outline, size: 20.sp),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Confirm Order',
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                      : Text(
+                          'Confirm Order',
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                 ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 8.h),
               // Security Note
-              Row(
-                children: [
-                  Icon(
-                    Icons.lock_outline,
-                    size: 16.sp,
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  'Your payment information is secure and encrypted',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.sp,
                     color: AppColors.textSecondary,
                   ),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      'Your payment information is secure and encrypted',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
