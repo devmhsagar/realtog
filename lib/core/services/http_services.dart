@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
+import 'local_storage_service.dart';
 
 class DioService {
   // Singleton
@@ -28,7 +29,10 @@ class DioService {
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
+            // Clear secure storage (token)
             await _storage.deleteAll();
+            // Clear all SharedPreferences data (including selected images)
+            await _localStorage.clearAll();
             // TODO: Add navigation to login page if needed
           }
           return handler.next(e);
@@ -39,6 +43,7 @@ class DioService {
 
   late Dio _dio;
   final _storage = const FlutterSecureStorage();
+  final _localStorage = LocalStorageService();
 
   Dio get client => _dio;
 }

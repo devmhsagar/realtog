@@ -9,10 +9,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/user_model.dart';
 import '../constants/api_constants.dart';
 import 'http_services.dart';
+import 'local_storage_service.dart';
 
 class AuthService {
   final Dio _dio = DioService().client;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final LocalStorageService _localStorage = LocalStorageService();
 
   /// Helper method to print long strings in chunks
   /// Flutter's debugPrint has a character limit (~1000 chars)
@@ -252,9 +254,12 @@ class AuthService {
     }
   }
 
-  /// Logout - clear token
+  /// Logout - clear token and all local storage data
   Future<void> logout() async {
+    // Clear secure storage (token)
     await _storage.delete(key: 'access_token');
+    // Clear all SharedPreferences data (including selected images)
+    await _localStorage.clearAll();
   }
 
   /// Sign in with Google and return the user

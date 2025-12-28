@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/local_storage_service.dart';
 import '../../core/widgets/reusable_appbar.dart';
 
 class SelectImagesPage extends ConsumerStatefulWidget {
@@ -31,7 +32,97 @@ class SelectImagesPage extends ConsumerStatefulWidget {
 
 class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
   final ImagePicker _imagePicker = ImagePicker();
+  final LocalStorageService _storageService = LocalStorageService();
   List<XFile> _selectedImages = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedImages();
+    _savePricingPlanContext();
+  }
+
+  /// Load saved images from local storage for the current package
+  Future<void> _loadSavedImages() async {
+    try {
+      // Load images specific to the current package
+      final savedPaths = await _storageService.getSelectedImages(
+        widget.pricingPlanId,
+      );
+
+      if (savedPaths.isNotEmpty) {
+        // Check if files still exist and convert to XFile objects
+        final List<XFile> validImages = [];
+        for (final path in savedPaths) {
+          final file = File(path);
+          if (await file.exists()) {
+            validImages.add(XFile(path));
+          }
+        }
+
+        // Ensure we don't exceed the current package's maxImages limit
+        final imagesToLoad = validImages.length > widget.maxImages
+            ? validImages.take(widget.maxImages).toList()
+            : validImages;
+
+        if (mounted) {
+          setState(() {
+            _selectedImages = imagesToLoad;
+            _isLoading = false;
+          });
+
+          // Save the filtered list if we had to truncate or remove deleted files
+          if (imagesToLoad.length != validImages.length ||
+              validImages.length != savedPaths.length) {
+            await _saveSelectedImages();
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading saved images: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Save pricing plan context to storage
+  Future<void> _savePricingPlanContext() async {
+    try {
+      await _storageService.savePricingPlanContext(
+        pricingPlanId: widget.pricingPlanId,
+        basePrice: widget.basePrice,
+        hasDecluttering: widget.hasDecluttering,
+        declutteringPrice: widget.declutteringPrice,
+        totalPrice: widget.totalPrice,
+        maxImages: widget.maxImages,
+      );
+    } catch (e) {
+      debugPrint('Error saving pricing plan context: $e');
+    }
+  }
+
+  /// Save selected images to local storage for the current package
+  Future<void> _saveSelectedImages() async {
+    try {
+      final imagePaths = _selectedImages.map((image) => image.path).toList();
+      await _storageService.saveSelectedImages(
+        imagePaths,
+        widget.pricingPlanId,
+      );
+    } catch (e) {
+      debugPrint('Error saving selected images: $e');
+    }
+  }
 
   Future<void> _pickImageFromCamera() async {
     if (_selectedImages.length >= widget.maxImages) {
@@ -49,6 +140,7 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
         setState(() {
           _selectedImages.add(image);
         });
+        await _saveSelectedImages();
       }
     } catch (e) {
       if (mounted) {
@@ -94,6 +186,7 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
             );
           }
         });
+        await _saveSelectedImages();
       }
     } catch (e) {
       if (mounted) {
@@ -107,10 +200,11 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage(int index) async {
     setState(() {
       _selectedImages.removeAt(index);
     });
+    await _saveSelectedImages();
   }
 
   void _showMaxImagesReachedDialog() {
@@ -131,7 +225,7 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
     );
   }
 
-  void _navigateToPayment() {
+  void _navigateToPayment() async {
     if (_selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -144,6 +238,9 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
 
     // Pass file paths instead of XFile objects for navigation
     final imagePaths = _selectedImages.map((image) => image.path).toList();
+
+    // Clear saved images for this package since we're proceeding to payment
+    await _storageService.clearSelectedImages(widget.pricingPlanId);
 
     context.push(
       '/payment',
@@ -160,6 +257,13 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: ReusableAppBar(title: 'Loading...'),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: ReusableAppBar(
         title: 'Selected: ${_selectedImages.length}/${widget.maxImages}',
