@@ -52,15 +52,13 @@ class _PricingPageState extends ConsumerState<PricingPage> {
     final pricingAsync = ref.watch(pricingPlanProvider(widget.id));
 
     return Scaffold(
-      appBar: const ReusableAppBar(
-        title: 'Pricing Details',
-      ),
+      appBar: const ReusableAppBar(title: 'Pricing Details'),
       body: pricingAsync.when(
         data: (plan) {
           // Calculate decluttering price and total price
           final int declutteringPrice = _getDeclutteringPrice(plan.maxImages);
           double totalPrice = plan.price;
-          
+
           if (_isDeclutteringSelected) {
             totalPrice = plan.price + declutteringPrice;
           }
@@ -71,126 +69,88 @@ class _PricingPageState extends ConsumerState<PricingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Card with Gradient
+                  // Header Card matching home tab design
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(16.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: AppColors.primary),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          plan.name,
-                          style: TextStyle(
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          plan.shortDescription ??
-                              'Professional photography service',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: AppColors.textLight.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        SizedBox(height: 12.h),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Price',
+                        // Title and Price section (white background)
+                        Padding(
+                          padding: EdgeInsets.all(16.w),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  plan.name,
                                   style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: AppColors.textLight.withValues(
-                                      alpha: 0.8,
-                                    ),
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
-                                SizedBox(height: 2.h),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (_isDeclutteringSelected)
-                                      Text(
-                                        'CA\$${plan.price.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: AppColors.textLight.withValues(
-                                            alpha: 0.6,
-                                          ),
-                                        ),
-                                      ),
-                                    Text(
-                                      'CA\$${totalPrice.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 28.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textLight,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 8.h,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColors.textLight.withValues(
-                                  alpha: 0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Column(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Icon(
-                                    Icons.image_outlined,
-                                    size: 24.sp,
-                                    color: AppColors.textLight,
-                                  ),
-                                  SizedBox(height: 2.h),
+                                  if (_isDeclutteringSelected)
+                                    Text(
+                                      '\$${plan.price.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        decoration: TextDecoration.lineThrough,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
                                   Text(
-                                    '${plan.maxImages}',
+                                    '\$${totalPrice.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 18.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textLight,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Photos',
-                                    style: TextStyle(
-                                      fontSize: 10.sp,
-                                      color: AppColors.textLight.withValues(
-                                        alpha: 0.9,
-                                      ),
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ],
                               ),
+                            ],
+                          ),
+                        ),
+                        // Green bar with description and View Details button
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(11.r),
+                              bottomRight: Radius.circular(11.r),
                             ),
-                          ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Includes ${plan.maxImages} AI professionally Edited photos.',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: AppColors.textLight,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -208,12 +168,13 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                   SizedBox(height: 12.h),
                   ..._getPackageFeatures(plan).map(
                     (feature) => Padding(
-                      padding: EdgeInsets.only(bottom: 8.h),
+                      padding: EdgeInsets.only(bottom: 8.h, left: 16.w),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            padding: EdgeInsets.all(4.w),
+                            width: 20.w,
+                            height: 20.w,
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(4.r),
@@ -241,58 +202,66 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                   ),
                   SizedBox(height: 16.h),
                   // Image Decluttering Option
-                  Container(
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(
-                        color: _isDeclutteringSelected
-                            ? AppColors.primary
-                            : AppColors.border,
-                        width: _isDeclutteringSelected ? 2 : 1,
+                  Padding(
+                    padding: EdgeInsets.only(left: 16.w),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isDeclutteringSelected = !_isDeclutteringSelected;
+                        });
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 20.w,
+                            height: 20.w,
+                            decoration: BoxDecoration(
+                              color: _isDeclutteringSelected
+                                  ? AppColors.primary
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(4.r),
+                              border: Border.all(
+                                color: AppColors.primary,
+                                width: 2,
+                              ),
+                            ),
+                            child: _isDeclutteringSelected
+                                ? Icon(
+                                    Icons.check,
+                                    size: 14.sp,
+                                    color: AppColors.textLight,
+                                  )
+                                : null,
+                          ),
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Image Decluttering',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  '+\$${declutteringPrice.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: _isDeclutteringSelected,
-                          onChanged: (value) {
-                            setState(() {
-                              _isDeclutteringSelected = value ?? false;
-                            });
-                          },
-                          activeColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4.r),
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Image Decluttering',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                '+ CA\$$declutteringPrice',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                   SizedBox(height: 20.h),
@@ -322,19 +291,13 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                         ),
                         elevation: 2,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.shopping_cart_outlined, size: 18.sp),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'Place Order',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Place Order',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
