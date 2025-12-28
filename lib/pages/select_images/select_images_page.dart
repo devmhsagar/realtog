@@ -160,42 +160,13 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final int remainingSlots = widget.maxImages - _selectedImages.length;
-
     return Scaffold(
-      appBar: const ReusableAppBar(
-        title: 'Select Images',
+      appBar: ReusableAppBar(
+        title: 'Selected: ${_selectedImages.length}/${widget.maxImages}',
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Image count indicator
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-              color: AppColors.primary.withValues(alpha: 0.1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Selected: ${_selectedImages.length}/${widget.maxImages}',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  if (remainingSlots > 0)
-                    Text(
-                      '$remainingSlots remaining',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                ],
-              ),
-            ),
             // Image grid
             Expanded(
               child: _selectedImages.isEmpty
@@ -293,92 +264,75 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
                       },
                     ),
             ),
-            // Action buttons
+            // Camera and Gallery buttons container
             Container(
               padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              color: AppColors.appBarTitleBackground,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _selectedImages.length >= widget.maxImages
-                              ? null
-                              : _pickImageFromCamera,
-                          icon: Icon(Icons.camera_alt, size: 20.sp),
-                          label: const Text('Camera'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: BorderSide(color: AppColors.primary),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _selectedImages.length >= widget.maxImages
-                              ? null
-                              : _pickImageFromGallery,
-                          icon: Icon(Icons.photo_library, size: 20.sp),
-                          label: const Text('Gallery'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: BorderSide(color: AppColors.primary),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12.h),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _navigateToPayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _selectedImages.length >= widget.maxImages
+                          ? null
+                          : _pickImageFromCamera,
+                      icon: Icon(Icons.camera_alt, size: 20.sp),
+                      label: const Text('Camera'),
+                      style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.textLight,
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        side: BorderSide(color: AppColors.textLight),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
-                        elevation: 2,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.arrow_forward, size: 20.sp),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'Continue to Payment',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _selectedImages.length >= widget.maxImages
+                          ? null
+                          : _pickImageFromGallery,
+                      icon: Icon(Icons.photo_library, size: 20.sp),
+                      label: const Text('Gallery'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textLight,
+                        side: BorderSide(color: AppColors.textLight),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
                       ),
                     ),
                   ),
                 ],
+              ),
+            ),
+            // Continue to Payment button
+            Container(
+              padding: EdgeInsets.all(16.w),
+              color: AppColors.surface,
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _navigateToPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textLight,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: Text(
+                    'Continue to Payment',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
