@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../core/widgets/reusable_appbar.dart';
+import 'camera_page.dart';
 
 class SelectImagesPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
@@ -131,9 +132,9 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
     }
 
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 100, // No compression - raw file
+      // Navigate to custom camera page with horizon level indicator
+      final XFile? image = await Navigator.of(context).push<XFile>(
+        MaterialPageRoute(builder: (context) => const CameraPage()),
       );
 
       if (image != null) {
