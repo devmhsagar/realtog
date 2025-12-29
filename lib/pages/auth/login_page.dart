@@ -44,10 +44,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Handle errors and navigation
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Only show error if it's different from previous error
-      if (next.error != null && next.error != previous?.error) {
+      if (next.error != null &&
+          (previous?.error == null || previous?.isLoading == true)) {
+        // Clear any existing snackbar first
+        ScaffoldMessenger.of(context).clearSnackBars();
+        // Show new snackbar with unique key to ensure it displays
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            key: ValueKey(DateTime.now().millisecondsSinceEpoch),
             content: Text(next.error!),
             backgroundColor: AppColors.error,
           ),
