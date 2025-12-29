@@ -19,6 +19,7 @@ class _CameraPageState extends State<CameraPage> {
   List<CameraDescription>? _cameras;
   bool _isInitialized = false;
   bool _isCapturing = false;
+  FlashMode _flashMode = FlashMode.off;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   double _roll = 0.0; // Rotation around Z-axis (horizon tilt)
   double _pitch = 0.0; // Rotation around X-axis (forward/backward tilt)
@@ -57,6 +58,9 @@ class _CameraPageState extends State<CameraPage> {
       );
 
       await _controller!.initialize();
+
+      // Set initial flash mode
+      await _controller!.setFlashMode(_flashMode);
 
       if (mounted) {
         setState(() {
@@ -110,6 +114,75 @@ class _CameraPageState extends State<CameraPage> {
       debugPrint('Failed to start accelerometer: $e');
       // If sensors are not available, the camera will still work
       // The horizon indicator will just show as level (0 degrees)
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+      return;
+    }
+
+    try {
+      // Cycle through flash modes: off -> auto -> on -> off
+      FlashMode newFlashMode;
+      switch (_flashMode) {
+        case FlashMode.off:
+          newFlashMode = FlashMode.auto;
+          break;
+        case FlashMode.auto:
+          newFlashMode = FlashMode.always;
+          break;
+        case FlashMode.always:
+          newFlashMode = FlashMode.off;
+          break;
+        case FlashMode.torch:
+          newFlashMode = FlashMode.off;
+          break;
+      }
+
+      await _controller!.setFlashMode(newFlashMode);
+      
+      if (mounted) {
+        setState(() {
+          _flashMode = newFlashMode;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error toggling flash: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error toggling flash: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_off;
+      case FlashMode.auto:
+        return Icons.flash_auto;
+      case FlashMode.always:
+        return Icons.flash_on;
+      case FlashMode.torch:
+        return Icons.flash_on;
+    }
+  }
+
+  Color _getFlashColor() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return AppColors.textSecondary;
+      case FlashMode.auto:
+        return AppColors.warning;
+      case FlashMode.always:
+        return AppColors.warning;
+      case FlashMode.torch:
+        return AppColors.warning;
     }
   }
 
@@ -270,8 +343,21 @@ class _CameraPageState extends State<CameraPage> {
                   ),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Flash toggle button
+                    IconButton(
+                      onPressed: _isInitialized ? _toggleFlash : null,
+                      icon: Icon(
+                        _getFlashIcon(),
+                        color: _getFlashColor(),
+                        size: 32.sp,
+                      ),
+                      padding: EdgeInsets.all(16.w),
+                      constraints: const BoxConstraints(),
+                    ),
+
                     // Capture button
                     GestureDetector(
                       onTap: _isCapturing ? null : _captureImage,
@@ -303,6 +389,9 @@ class _CameraPageState extends State<CameraPage> {
                               ),
                       ),
                     ),
+
+                    // Spacer to balance the layout
+                    SizedBox(width: 48.w),
                   ],
                 ),
               ),
