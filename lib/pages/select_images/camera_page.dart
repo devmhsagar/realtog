@@ -17,8 +17,10 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
+  int _currentCameraIndex = 0;
   bool _isInitialized = false;
   bool _isCapturing = false;
+  bool _isSwitchingCamera = false;
   FlashMode _flashMode = FlashMode.off;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   double _roll = 0.0; // Rotation around Z-axis (horizon tilt)
@@ -32,24 +34,36 @@ class _CameraPageState extends State<CameraPage> {
     _startSensorListening();
   }
 
-  Future<void> _initializeCamera() async {
+  Future<void> _initializeCamera({int? cameraIndex}) async {
     try {
-      _cameras = await availableCameras();
-      if (_cameras == null || _cameras!.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No cameras available'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-          Navigator.of(context).pop();
+      if (_cameras == null) {
+        _cameras = await availableCameras();
+        if (_cameras == null || _cameras!.isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('No cameras available'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+            Navigator.of(context).pop();
+          }
+          return;
         }
+      }
+
+      // Use provided index or current index
+      final index = cameraIndex ?? _currentCameraIndex;
+      if (index >= _cameras!.length) {
+        debugPrint('Camera index out of range');
         return;
       }
 
+      // Dispose previous controller if exists
+      await _controller?.dispose();
+
       _controller = CameraController(
-        _cameras![0],
+        _cameras![index],
         ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: Platform.isAndroid
@@ -59,24 +73,39 @@ class _CameraPageState extends State<CameraPage> {
 
       await _controller!.initialize();
 
-      // Set initial flash mode
-      await _controller!.setFlashMode(_flashMode);
+      // Set flash mode (front cameras usually don't support flash)
+      try {
+        await _controller!.setFlashMode(_flashMode);
+      } catch (e) {
+        // Front camera might not support flash, reset to off
+        if (_cameras![index].lensDirection == CameraLensDirection.front) {
+          _flashMode = FlashMode.off;
+        }
+        debugPrint('Flash mode error: $e');
+      }
 
       if (mounted) {
         setState(() {
+          _currentCameraIndex = index;
           _isInitialized = true;
+          _isSwitchingCamera = false;
         });
       }
     } catch (e) {
       debugPrint('Error initializing camera: $e');
       if (mounted) {
+        setState(() {
+          _isSwitchingCamera = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error initializing camera: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
-        Navigator.of(context).pop();
+        if (!_isInitialized) {
+          Navigator.of(context).pop();
+        }
       }
     }
   }
@@ -117,8 +146,41 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
+  Future<void> _switchCamera() async {
+    if (_cameras == null || _cameras!.length < 2 || _isSwitchingCamera) {
+      return;
+    }
+
+    setState(() {
+      _isSwitchingCamera = true;
+      _isInitialized = false;
+    });
+
+    // Switch to the other camera
+    final newIndex = _currentCameraIndex == 0 ? 1 : 0;
+    await _initializeCamera(cameraIndex: newIndex);
+  }
+
+  bool get _hasMultipleCameras => _cameras != null && _cameras!.length > 1;
+  bool get _isFrontCamera => _cameras != null && 
+      _currentCameraIndex < _cameras!.length &&
+      _cameras![_currentCameraIndex].lensDirection == CameraLensDirection.front;
+
   Future<void> _toggleFlash() async {
     if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+      return;
+    }
+
+    // Front cameras usually don't support flash
+    if (_isFrontCamera) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Front camera does not support flash'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
       return;
     }
 
@@ -348,10 +410,12 @@ class _CameraPageState extends State<CameraPage> {
                   children: [
                     // Flash toggle button
                     IconButton(
-                      onPressed: _isInitialized ? _toggleFlash : null,
+                      onPressed: _isInitialized && !_isSwitchingCamera ? _toggleFlash : null,
                       icon: Icon(
                         _getFlashIcon(),
-                        color: _getFlashColor(),
+                        color: _isFrontCamera 
+                            ? AppColors.textSecondary 
+                            : _getFlashColor(),
                         size: 32.sp,
                       ),
                       padding: EdgeInsets.all(16.w),
@@ -360,13 +424,13 @@ class _CameraPageState extends State<CameraPage> {
 
                     // Capture button
                     GestureDetector(
-                      onTap: _isCapturing ? null : _captureImage,
+                      onTap: (_isCapturing || _isSwitchingCamera) ? null : _captureImage,
                       child: Container(
                         width: 72.w,
                         height: 72.w,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _isCapturing
+                          color: (_isCapturing || _isSwitchingCamera)
                               ? AppColors.textSecondary
                               : AppColors.textLight,
                           border: Border.all(
@@ -374,7 +438,7 @@ class _CameraPageState extends State<CameraPage> {
                             width: 4.w,
                           ),
                         ),
-                        child: _isCapturing
+                        child: (_isCapturing || _isSwitchingCamera)
                             ? Padding(
                                 padding: EdgeInsets.all(20.w),
                                 child: const CircularProgressIndicator(
@@ -390,8 +454,21 @@ class _CameraPageState extends State<CameraPage> {
                       ),
                     ),
 
-                    // Spacer to balance the layout
-                    SizedBox(width: 48.w),
+                    // Camera toggle button
+                    IconButton(
+                      onPressed: (_hasMultipleCameras && !_isSwitchingCamera) 
+                          ? _switchCamera 
+                          : null,
+                      icon: Icon(
+                        Icons.flip_camera_ios,
+                        color: _hasMultipleCameras 
+                            ? AppColors.textLight 
+                            : AppColors.textSecondary,
+                        size: 32.sp,
+                      ),
+                      padding: EdgeInsets.all(16.w),
+                      constraints: const BoxConstraints(),
+                    ),
                   ],
                 ),
               ),
