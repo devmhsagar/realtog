@@ -31,6 +31,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
+      // Clear any previous errors
+      ref.read(authNotifierProvider.notifier).setError(null);
+
       await ref
           .read(authNotifierProvider.notifier)
           .register(
@@ -39,44 +42,39 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             phone: _phoneController.text.trim(),
             password: _passwordController.text,
           );
+
+      // Check the result after registration completes
+      final authState = ref.read(authNotifierProvider);
+
+      if (!mounted) return;
+
+      if (authState.error != null) {
+        // Registration failed - show error and stay on page
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authState.error!),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } else if (authState.user != null && !authState.isAuthenticated) {
+        // Registration successful - show success message and stay on page
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registration successful! Please login to continue.'),
+            backgroundColor: AppColors.success,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        // Stay on register page - user can manually navigate to login if needed
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-
-    // Handle registration success
-    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      if (next.user != null &&
-          previous?.user == null &&
-          !next.isAuthenticated) {
-        // Registration successful - show message and navigate to login
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Please login to continue.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        // Navigate back to login page
-        context.pop();
-      }
-      // Show error if:
-      // 1. Error is not null
-      // 2. Previous state was loading (error just appeared after API call)
-      // 3. OR error is different from previous error
-      if (next.error != null &&
-          (previous?.isLoading == true || next.error != previous?.error)) {
-        // Dismiss any existing snackbars first
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    });
 
     return Scaffold(
       body: Container(
@@ -288,7 +286,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            context.pop();
+                            context.go('/login');
                           },
                           child: Text(
                             'Sign In',

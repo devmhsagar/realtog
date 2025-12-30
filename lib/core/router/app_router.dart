@@ -14,8 +14,8 @@ import '../../providers/auth_provider.dart';
 
 /// Router configuration provider
 final routerProvider = Provider<GoRouter>((ref) {
-  // Watch auth state to trigger router rebuilds
-  ref.watch(authNotifierProvider);
+  // Don't watch auth state here - refreshListenable handles router updates
+  // This prevents unnecessary router rebuilds during registration
 
   return GoRouter(
     initialLocation: '/',
@@ -37,8 +37,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
+      // Never redirect away from register page (except if authenticated, then go to home)
+      // This allows the register page to handle its own state and navigation
+      if (isOnRegisterPage) {
+        // Only redirect if authenticated (should go to home)
+        if (isAuthenticated) {
+          return '/home';
+        }
+        // Otherwise, stay on register page - let it handle its own navigation
+        return null;
+      }
+
       // If authenticated and trying to access auth pages, redirect to home
-      if (isAuthenticated && (isOnLoginPage || isOnRegisterPage)) {
+      if (isAuthenticated && isOnLoginPage) {
         return '/home';
       }
 
@@ -179,6 +190,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 /// Listenable wrapper for auth notifier to enable router refresh
+/// Only refreshes router on authentication state changes, not on loading or registration state changes
 class _AuthNotifierListenable extends Listenable {
   final Ref _ref;
 
@@ -188,7 +200,17 @@ class _AuthNotifierListenable extends Listenable {
   void addListener(VoidCallback listener) {
     // Listen to auth state changes and notify the router
     _ref.listen(authNotifierProvider, (previous, next) {
-      listener();
+      // Only trigger router refresh on actual authentication state changes
+      // Skip router refresh for:
+      // 1. Loading state changes (isLoading)
+      // 2. Error state changes (error)
+      // 3. Registration state changes (user set but not authenticated)
+      // Only refresh when isAuthenticated actually changes
+      final authChanged = previous?.isAuthenticated != next.isAuthenticated;
+      
+      if (authChanged) {
+        listener();
+      }
     });
   }
 
