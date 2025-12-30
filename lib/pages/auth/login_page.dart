@@ -44,6 +44,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Handle errors and navigation
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      // Clear any existing snackbars on successful login
+      if (next.isAuthenticated && 
+          previous?.isAuthenticated == false &&
+          previous?.isLoading == true) {
+        // Login successful - clear any existing snackbars (e.g., from registration)
+        ScaffoldMessenger.of(context).clearSnackBars();
+        return;
+      }
+      
+      // Only show snackbar for errors
       if (next.error != null &&
           (previous?.error == null || previous?.isLoading == true)) {
         // Clear any existing snackbar first
