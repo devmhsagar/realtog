@@ -58,16 +58,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           ),
         );
       } else if (authState.user != null && !authState.isAuthenticated) {
-        // Registration successful - show success message and stay on page
+        // Registration successful - show success message and navigate to login
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registration successful! Please login to continue.'),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 2),
           ),
         );
-        // Stay on register page - user can manually navigate to login if needed
+        // Navigate to login page after showing success message
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            context.go('/login');
+          }
+        });
       }
     }
   }
