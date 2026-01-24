@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/constants/app_colors.dart';
@@ -30,6 +31,11 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void initState() {
     super.initState();
+    // Set orientation to landscape for camera page
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     _initializeCamera();
     _startSensorListening();
   }
@@ -288,6 +294,11 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   void dispose() {
+    // Restore portrait orientation when leaving camera page
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _accelerometerSubscription?.cancel();
     _controller?.dispose();
     super.dispose();

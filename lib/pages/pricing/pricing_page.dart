@@ -142,7 +142,7 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Includes ${plan.maxImages} AI professionally Edited photos.',
+                                  'Includes ${plan.maxImages} AI professionally edited photos.',
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     color: AppColors.textLight,
