@@ -25,6 +25,10 @@ class _CameraPageState extends State<CameraPage> {
   double _roll = 0.0; // Rotation around Z-axis (horizon tilt)
   double _pitch = 0.0; // Rotation around X-axis (forward/backward tilt)
   static const double _levelThreshold = 2.0; // Degrees considered "level"
+  static const double _verticalLevelTarget =
+      -90.0; // Target pitch for vertical level in landscape (negative value)
+  static const double _verticalLevelThreshold =
+      10.0; // Degrees considered "vertically level" (wider range for detection)
   bool _isLowLight = false;
   static const double _lowLightThreshold =
       0.15; // Brightness threshold (0.0 to 1.0)
@@ -286,6 +290,23 @@ class _CameraPageState extends State<CameraPage> {
 
   bool get _isLevel => _roll.abs() < _levelThreshold;
 
+  // Check if vertical is level
+  // In landscape mode, when device is level (not tilted forward/backward),
+  // the pitch calculation gives -90° (negative value)
+  bool get _isVerticalLevel {
+    // Check if pitch is close to -90° (expected when level in landscape)
+    final diffFromNeg90 = (_pitch - _verticalLevelTarget).abs();
+    final isNearNeg90 = diffFromNeg90 <= _verticalLevelThreshold;
+
+    // Also check if pitch is in the lower range (-90° to -80°) - near minimum clamp
+    final isInLowerRange = _pitch <= (-90.0 + _verticalLevelThreshold);
+
+    // Debug: Check console to see actual pitch values
+    // debugPrint('Pitch: $_pitch, diffFromNeg90: $diffFromNeg90, isNearNeg90: $isNearNeg90, isInLowerRange: $isInLowerRange');
+
+    return isNearNeg90 || isInLowerRange;
+  }
+
   /// Restores portrait orientation and pops the route
   Future<void> _popWithOrientationRestore([dynamic result]) async {
     // Restore portrait orientation before navigation
@@ -343,6 +364,7 @@ class _CameraPageState extends State<CameraPage> {
                     roll: _roll,
                     pitch: _pitch,
                     isLevel: _isLevel,
+                    isVerticalLevel: _isVerticalLevel,
                   ),
                 ),
 
@@ -494,17 +516,24 @@ class _HorizonLevelIndicator extends StatelessWidget {
   final double roll;
   final double pitch;
   final bool isLevel;
+  final bool isVerticalLevel;
 
   const _HorizonLevelIndicator({
     required this.roll,
     required this.pitch,
     required this.isLevel,
+    required this.isVerticalLevel,
   });
 
   @override
   Widget build(BuildContext context) {
     final circleSize = 30.0;
-    final lineColor = isLevel ? AppColors.success : AppColors.error;
+    // Horizontal line and circle use green when level, red when not
+    final horizontalLineColor = isLevel ? AppColors.success : AppColors.error;
+    // Vertical line uses yellow only when vertically level (pitch ≈ 90°), red otherwise
+    final verticalLineColor = isVerticalLevel
+        ? AppColors.warning
+        : AppColors.error;
 
     // Convert roll and pitch to radians for rotation
     // In landscape mode:
@@ -520,7 +549,8 @@ class _HorizonLevelIndicator extends StatelessWidget {
     // In landscape mode, when device is level, pitch calculation gives ~90° (not 0°)
     // So we use pitch directly: when pitch = 90° (level), line is at 90° (vertical)
     // When pitch deviates from 90°, the line rotates accordingly
-    final verticalLineAngle = pitchRadians; // pitch already accounts for landscape orientation
+    final verticalLineAngle =
+        pitchRadians; // pitch already accounts for landscape orientation
 
     return IgnorePointer(
       child: Center(
@@ -529,7 +559,7 @@ class _HorizonLevelIndicator extends StatelessWidget {
           height: circleSize.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: lineColor, width: 1.w),
+            border: Border.all(color: horizontalLineColor, width: 1.w),
           ),
           child: ClipOval(
             child: Stack(
@@ -541,7 +571,7 @@ class _HorizonLevelIndicator extends StatelessWidget {
                     height: 4.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: lineColor,
+                      color: horizontalLineColor,
                     ),
                   ),
                 ),
@@ -552,19 +582,19 @@ class _HorizonLevelIndicator extends StatelessWidget {
                     child: Container(
                       width: circleSize.w,
                       height: 1.h,
-                      decoration: BoxDecoration(color: lineColor),
+                      decoration: BoxDecoration(color: horizontalLineColor),
                     ),
                   ),
                 ),
                 // Vertical line (starts at 90 degrees, rotates based on pitch - for vertical/pitch confirmation)
-                // A horizontal container rotated 90° becomes vertical
+                // Yellow when level, red when not
                 Center(
                   child: Transform.rotate(
                     angle: verticalLineAngle,
                     child: Container(
                       width: circleSize.w,
                       height: 1.5.h, // Slightly thicker for visibility
-                      decoration: BoxDecoration(color: lineColor),
+                      decoration: BoxDecoration(color: verticalLineColor),
                     ),
                   ),
                 ),
