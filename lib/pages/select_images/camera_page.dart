@@ -52,7 +52,7 @@ class _CameraPageState extends State<CameraPage> {
                 backgroundColor: AppColors.error,
               ),
             );
-            Navigator.of(context).pop();
+            _popWithOrientationRestore();
           }
           return;
         }
@@ -110,7 +110,7 @@ class _CameraPageState extends State<CameraPage> {
           ),
         );
         if (!_isInitialized) {
-          Navigator.of(context).pop();
+          _popWithOrientationRestore();
         }
       }
     }
@@ -269,7 +269,7 @@ class _CameraPageState extends State<CameraPage> {
       final XFile image = await _controller!.takePicture();
       
       if (mounted) {
-        Navigator.of(context).pop(image);
+        await _popWithOrientationRestore(image);
       }
     } catch (e) {
       debugPrint('Error capturing image: $e');
@@ -292,9 +292,23 @@ class _CameraPageState extends State<CameraPage> {
 
   bool get _isLevel => _roll.abs() < _levelThreshold;
 
+  /// Restores portrait orientation and pops the route
+  Future<void> _popWithOrientationRestore([dynamic result]) async {
+    // Restore portrait orientation before navigation
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    // Wait a frame to ensure orientation is applied
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) {
+      Navigator.of(context).pop(result);
+    }
+  }
+
   @override
   void dispose() {
-    // Restore portrait orientation when leaving camera page
+    // Restore portrait orientation when leaving camera page (fallback)
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -306,10 +320,17 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _popWithOrientationRestore();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Stack(
           children: [
             // Camera preview
             if (_isInitialized && _controller != null)
@@ -354,7 +375,7 @@ class _CameraPageState extends State<CameraPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => _popWithOrientationRestore(),
                       icon: Icon(
                         Icons.close,
                         color: AppColors.textLight,
@@ -486,6 +507,7 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
