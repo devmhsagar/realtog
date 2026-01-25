@@ -26,7 +26,8 @@ class _CameraPageState extends State<CameraPage> {
   double _pitch = 0.0; // Rotation around X-axis (forward/backward tilt)
   static const double _levelThreshold = 2.0; // Degrees considered "level"
   bool _isLowLight = false;
-  static const double _lowLightThreshold = 0.15; // Brightness threshold (0.0 to 1.0)
+  static const double _lowLightThreshold =
+      0.15; // Brightness threshold (0.0 to 1.0)
   DateTime? _lastBrightnessCheck;
 
   @override
@@ -154,18 +155,18 @@ class _CameraPageState extends State<CameraPage> {
     // Calculate average brightness from the image
     // For YUV420 format (Android), use Y plane
     // For BGRA8888 format (iOS), calculate from RGB
-    
+
     if (image.format.group == ImageFormatGroup.yuv420) {
       // Android: Use Y plane (luminance)
       final yPlane = image.planes[0];
       final bytes = yPlane.bytes;
       int sum = 0;
-      
+
       // Sample every 10th pixel for performance
       for (int i = 0; i < bytes.length; i += 10) {
         sum += bytes[i];
       }
-      
+
       final avg = sum / (bytes.length / 10);
       return avg / 255.0; // Normalize to 0.0-1.0
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
@@ -174,26 +175,26 @@ class _CameraPageState extends State<CameraPage> {
       final bytes = plane.bytes;
       int sum = 0;
       int count = 0;
-      
+
       // Sample every 40th pixel (BGRA = 4 bytes per pixel, so every 10th pixel)
       for (int i = 0; i < bytes.length - 3; i += 40) {
         // Extract RGB values (BGRA format)
         final b = bytes[i];
         final g = bytes[i + 1];
         final r = bytes[i + 2];
-        
+
         // Calculate luminance using standard formula
         final luminance = (0.299 * r + 0.587 * g + 0.114 * b);
         sum += luminance.toInt();
         count++;
       }
-      
+
       if (count > 0) {
         final avg = sum / count;
         return avg / 255.0; // Normalize to 0.0-1.0
       }
     }
-    
+
     return 0.5; // Default if format not recognized
   }
 
@@ -207,15 +208,21 @@ class _CameraPageState extends State<CameraPage> {
             // - Roll (left/right tilt): rotation around forward axis - use Y and Z
             // - Pitch (forward/backward tilt): rotation around side axis - use X and Z
             // When level in landscape: X ≈ -9.8 (gravity down), Y ≈ 0, Z ≈ 0
-            
+
             // Roll: left/right tilt (rotation around forward/backward axis)
             // Positive roll = tilted right, Negative roll = tilted left
-            final rollRadians = atan2(event.y, sqrt(event.x * event.x + event.z * event.z));
-            
+            final rollRadians = atan2(
+              event.y,
+              sqrt(event.x * event.x + event.z * event.z),
+            );
+
             // Pitch: forward/backward tilt (rotation around left/right axis)
             // Positive pitch = tilted forward, Negative pitch = tilted backward
-            final pitchRadians = atan2(-event.x, sqrt(event.y * event.y + event.z * event.z));
-            
+            final pitchRadians = atan2(
+              -event.x,
+              sqrt(event.y * event.y + event.z * event.z),
+            );
+
             final roll = (rollRadians * 180.0 / pi).clamp(-90.0, 90.0);
             final pitch = (pitchRadians * 180.0 / pi).clamp(-90.0, 90.0);
 
@@ -239,9 +246,10 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
-
   Future<void> _captureImage() async {
-    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+    if (!_isInitialized ||
+        _controller == null ||
+        !_controller!.value.isInitialized) {
       return;
     }
 
@@ -253,7 +261,7 @@ class _CameraPageState extends State<CameraPage> {
 
     try {
       final XFile image = await _controller!.takePicture();
-      
+
       if (mounted) {
         await _popWithOrientationRestore(image);
       }
@@ -319,193 +327,163 @@ class _CameraPageState extends State<CameraPage> {
         backgroundColor: Colors.black,
         body: SafeArea(
           child: Stack(
-          children: [
-            // Camera preview
-            if (_isInitialized && _controller != null)
-              Positioned.fill(
-                child: CameraPreview(_controller!),
-              )
-            else
-              const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
+            children: [
+              // Camera preview
+              if (_isInitialized && _controller != null)
+                Positioned.fill(child: CameraPreview(_controller!))
+              else
+                const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
                 ),
-              ),
 
-            // Horizon level indicator
-            if (_isInitialized)
-              Positioned.fill(
-                child: _HorizonLevelIndicator(
-                  roll: _roll,
-                  pitch: _pitch,
-                  isLevel: _isLevel,
-                ),
-              ),
-
-            // Low light warning message
-            if (_isInitialized && _isLowLight)
-              Positioned(
-                top: 80.h,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 32.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 12.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          color: AppColors.textLight,
-                          size: 20.sp,
-                        ),
-                        SizedBox(width: 8.w),
-                        Flexible(
-                          child: Text(
-                            'Low light detected. Please increase the room lighting.',
-                            style: TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
+              // Horizon level indicator
+              if (_isInitialized)
+                Positioned.fill(
+                  child: _HorizonLevelIndicator(
+                    roll: _roll,
+                    pitch: _pitch,
+                    isLevel: _isLevel,
                   ),
                 ),
-              ),
 
-            // Top bar with close button
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () => _popWithOrientationRestore(),
-                      icon: Icon(
-                        Icons.close,
-                        color: AppColors.textLight,
-                        size: 14.sp,
-                      ),
-                      padding: EdgeInsets.all(8.w),
-                      constraints: const BoxConstraints(),
-                    ),
-                    // Level status indicator
-                    Container(
+              // Low light warning message
+              if (_isInitialized && _isLowLight)
+                Positioned(
+                  top: 80.h,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 32.w),
                       padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 3.h,
+                        horizontal: 16.w,
+                        vertical: 12.h,
                       ),
                       decoration: BoxDecoration(
-                        color: _isLevel
-                            ? AppColors.success.withOpacity(0.8)
-                            : AppColors.error.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(10.r),
+                        color: AppColors.warning.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _isLevel ? Icons.check_circle : Icons.trending_flat,
+                            Icons.lightbulb_outline,
                             color: AppColors.textLight,
-                            size: 8.sp,
+                            size: 20.sp,
                           ),
-                          SizedBox(width: 2.w),
-                          Text(
-                            _isLevel ? 'Level' : '${_roll.toStringAsFixed(1)}°',
-                            style: TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 6.sp,
-                              fontWeight: FontWeight.w600,
+                          SizedBox(width: 8.w),
+                          Flexible(
+                            child: Text(
+                              'Low light detected. Please increase the room lighting.',
+                              style: TextStyle(
+                                color: AppColors.textLight,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // Bottom controls
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 32.h, horizontal: 16.w),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
+              // Top bar with close button
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.7),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        onPressed: () => _popWithOrientationRestore(),
+                        icon: Icon(
+                          Icons.close,
+                          color: AppColors.textLight,
+                          size: 14.sp,
+                        ),
+                        padding: EdgeInsets.all(8.w),
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
                   ),
                 ),
-                child: Center(
-                  child: GestureDetector(
-                    onTap: _isCapturing ? null : _captureImage,
-                    child: Container(
-                      width: 36.w,
-                      height: 36.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _isCapturing
-                            ? AppColors.textSecondary
-                            : AppColors.textLight,
-                        border: Border.all(
-                          color: AppColors.textLight,
-                          width: 2.w,
+              ),
+
+              // Bottom controls
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 32.h,
+                    horizontal: 16.w,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.7),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isCapturing ? null : _captureImage,
+                      child: Container(
+                        width: 36.w,
+                        height: 36.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _isCapturing
+                              ? AppColors.textSecondary
+                              : AppColors.textLight,
+                          border: Border.all(
+                            color: AppColors.textLight,
+                            width: 2.w,
+                          ),
                         ),
-                      ),
-                      child: _isCapturing
-                          ? Padding(
-                              padding: EdgeInsets.all(10.w),
-                              child: const CircularProgressIndicator(
+                        child: _isCapturing
+                            ? Padding(
+                                padding: EdgeInsets.all(10.w),
+                                child: const CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : Icon(
+                                Icons.camera_alt,
                                 color: AppColors.primary,
-                                strokeWidth: 3,
+                                size: 16.sp,
                               ),
-                            )
-                          : Icon(
-                              Icons.camera_alt,
-                              color: AppColors.primary,
-                              size: 16.sp,
-                            ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -525,19 +503,24 @@ class _HorizonLevelIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate offset for horizontal line based on roll (in landscape mode)
-    // Positive roll = tilted right = line moves right
-    // Negative roll = tilted left = line moves left
     final circleSize = 30.0;
-    final maxOffset = circleSize * 0.4; // Maximum offset within circle
-    final horizontalOffset = (roll / 90.0) * maxOffset;
-    
-    // Calculate offset for vertical line based on pitch (in landscape mode)
-    // Positive pitch = tilted forward = line moves down
-    // Negative pitch = tilted backward = line moves up
-    final verticalOffset = (pitch / 90.0) * maxOffset;
-
     final lineColor = isLevel ? AppColors.success : AppColors.error;
+
+    // Convert roll and pitch to radians for rotation
+    // In landscape mode:
+    // - Roll (left/right tilt) rotates the horizontal line for horizontal confirmation
+    // - Pitch (forward/backward tilt) rotates the vertical line for vertical confirmation
+    final rollRadians = roll * pi / 180.0;
+    final pitchRadians = pitch * pi / 180.0;
+    // Horizontal line: starts at 180 degrees (horizontal), then rotates by roll
+    // 180° = pi radians = horizontal line pointing left
+    final horizontalLineAngle = pi + rollRadians;
+    // Vertical line: starts at 90 degrees (vertical), then rotates by pitch
+    // 90° = pi/2 radians = vertical line pointing down
+    // In landscape mode, when device is level, pitch calculation gives ~90° (not 0°)
+    // So we use pitch directly: when pitch = 90° (level), line is at 90° (vertical)
+    // When pitch deviates from 90°, the line rotates accordingly
+    final verticalLineAngle = pitchRadians; // pitch already accounts for landscape orientation
 
     return IgnorePointer(
       child: Center(
@@ -546,10 +529,7 @@ class _HorizonLevelIndicator extends StatelessWidget {
           height: circleSize.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: lineColor,
-              width: 1.w,
-            ),
+            border: Border.all(color: lineColor, width: 1.w),
           ),
           child: ClipOval(
             child: Stack(
@@ -565,29 +545,26 @@ class _HorizonLevelIndicator extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Horizontal line (inside circle, moves left/right based on roll)
+                // Horizontal line (starts at 180 degrees, rotates based on roll - for horizontal/roll confirmation)
                 Center(
-                  child: Transform.translate(
-                    offset: Offset(horizontalOffset, 0),
+                  child: Transform.rotate(
+                    angle: horizontalLineAngle,
                     child: Container(
                       width: circleSize.w,
                       height: 1.h,
-                      decoration: BoxDecoration(
-                        color: lineColor,
-                      ),
+                      decoration: BoxDecoration(color: lineColor),
                     ),
                   ),
                 ),
-                // Vertical line (inside circle, moves up/down based on pitch)
+                // Vertical line (starts at 90 degrees, rotates based on pitch - for vertical/pitch confirmation)
+                // A horizontal container rotated 90° becomes vertical
                 Center(
-                  child: Transform.translate(
-                    offset: Offset(0, verticalOffset),
+                  child: Transform.rotate(
+                    angle: verticalLineAngle,
                     child: Container(
-                      width: 1.w,
-                      height: circleSize.w,
-                      decoration: BoxDecoration(
-                        color: lineColor,
-                      ),
+                      width: circleSize.w,
+                      height: 1.5.h, // Slightly thicker for visibility
+                      decoration: BoxDecoration(color: lineColor),
                     ),
                   ),
                 ),
@@ -599,4 +576,3 @@ class _HorizonLevelIndicator extends StatelessWidget {
     );
   }
 }
-
