@@ -52,10 +52,56 @@ class ProfileTab extends ConsumerWidget {
                 height: 56.h,
                 child: ElevatedButton(
                   onPressed: () async {
-                    await ref.read(authNotifierProvider.notifier).logout();
+                    final shouldLogout = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        content: Text(
+                          'Are you sure you want to logout?',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(
+                              'Logout',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (shouldLogout == true && context.mounted) {
+                      await ref.read(authNotifierProvider.notifier).logout();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.textLight,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
