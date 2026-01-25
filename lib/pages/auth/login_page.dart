@@ -275,48 +275,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 12.h),
-
-                          // Apple Sign In Button
-                          SizedBox(
-                            height: 56.h,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                // TODO: Implement Apple sign in
-                              },
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: AppColors.white,
-                                foregroundColor: AppColors.textPrimary,
-                                side: BorderSide(
-                                  color: AppColors.white.withValues(alpha: 0.3),
-                                  width: 1.5,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Apple Icon (using Material Icons as placeholder)
-                                  Icon(
-                                    Icons.apple,
-                                    size: 24.sp,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                  SizedBox(width: 12.w),
-                                  Text(
-                                    'Continue with Apple',
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                           SizedBox(height: 16.h),
 
                           // Register Link
