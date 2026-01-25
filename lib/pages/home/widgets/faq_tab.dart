@@ -12,34 +12,35 @@ class FaqTab extends StatefulWidget {
 class _FaqTabState extends State<FaqTab> {
   final List<FAQItem> _faqs = [
     FAQItem(
-      question: 'What is RealTog?',
+      question: 'Are the photos actually professional-quality?',
       answer:
-          'RealTog is a professional photo editing service that uses AI technology to enhance your real estate photos, making them look more appealing and professional.',
+          'Yes. When you follow our in-app composition tips and use good lighting, REALTOG delivers clean, professional-looking listing photos. Our AI fine-tunes each image by correcting verticals, balancing white levels, adjusting brightness, and enhancing skies when needed. All edits are subtle and photorealistic—never artificial or CGI.',
     ),
     FAQItem(
-      question: 'How long does it take to process my photos?',
+      question: 'How do I take photos with REALTOG?',
       answer:
-          'Processing time varies depending on your selected package. Typically, photos are processed within 24-48 hours after order confirmation.',
+          'Start by choosing a Photo Package that fits your listing. Use the in-app shooting guide to capture each space, paying attention to the on-screen vertical and horizontal guides for proper alignment. Make sure rooms are well lit—low light can affect image clarity. Once you’re done, submit your photos and relax while we professionally edit them for you.',
     ),
     FAQItem(
-      question: 'What file formats do you accept?',
+      question: 'How quickly will I get my photos?',
       answer:
-          'We accept common image formats including JPEG, PNG, and HEIC. Please ensure your images are clear and of good quality for best results.',
+          'Speed is at the core of what we do. In most cases, your fully edited photos are delivered in just 20–30 minutes. If you choose our Decluttering add-on, delivery may take a little longer—up to 12 hours—to ensure the highest-quality, photo-realistic results.',
     ),
     FAQItem(
-      question: 'Can I request revisions?',
+      question: 'How much does REALTOG cost?',
       answer:
-          'Yes, we offer revision requests for all packages. Please contact us through the chat feature if you need any adjustments to your edited photos.',
+          'REALTOG is designed to be flexible and transparent. Simply pay per use and choose the photo package that best fits your listing and budget. There are no subscriptions, no contracts, and no hidden fees. Best of all, REALTOG delivers professional-grade results at a fraction of the cost of traditional real estate photography.',
     ),
     FAQItem(
-      question: 'How do I track my order?',
+      question:
+          'When should I use REALTOG vs traditional real estate photography?',
       answer:
-          'You can track your order status in the Orders tab. You will receive notifications when your order status changes.',
+          'REALTOG is designed for moments when speed, flexibility, and value matter most. Because the results are truly professional-grade, there’s no limitation on the type of listing you can use it for—from a one-bedroom rental to a luxury, multi-million-dollar home.\nIf you need high-quality images delivered quickly, or are looking to significantly reduce the cost of traditional real estate media, REALTOG is an ideal solution. It empowers you to move faster, spend less, and still present every listing at its absolute best.',
     ),
     FAQItem(
-      question: 'What payment methods do you accept?',
+      question: 'Can I get revisions?',
       answer:
-          'We accept various payment methods including credit cards, debit cards, and other secure payment options available during checkout.',
+          'REALTOG does not offer revisions. Our AI uses a consistent, standardized editing process, applying the same professional metrics to every image for reliable, repeatable results. The final outcome is directly influenced by the quality of the original capture—this is why following our composition guidelines and using proper lighting is essential to achieving truly professional-grade images.',
     ),
   ];
 
@@ -155,10 +156,7 @@ class _FAQCardState extends State<_FAQCard> {
           if (_isExpanded)
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
-              child: Divider(
-                color: AppColors.border,
-                height: 1,
-              ),
+              child: Divider(color: AppColors.border, height: 1),
             ),
           if (_isExpanded)
             Padding(
@@ -180,4 +178,3 @@ class _FAQCardState extends State<_FAQCard> {
     );
   }
 }
-
