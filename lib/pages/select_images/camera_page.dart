@@ -21,9 +21,13 @@ class _CameraPageState extends State<CameraPage> {
   bool _isInitialized = false;
   bool _isCapturing = false;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+  StreamSubscription<CameraImage>? _imageStreamSubscription;
   double _roll = 0.0; // Rotation around Z-axis (horizon tilt)
   double _pitch = 0.0; // Rotation around X-axis (forward/backward tilt)
   static const double _levelThreshold = 2.0; // Degrees considered "level"
+  bool _isLowLight = false;
+  static const double _lowLightThreshold = 0.15; // Brightness threshold (0.0 to 1.0)
+  DateTime? _lastBrightnessCheck;
 
   @override
   void initState() {
@@ -95,6 +99,7 @@ class _CameraPageState extends State<CameraPage> {
         setState(() {
           _isInitialized = true;
         });
+        _startBrightnessMonitoring();
       }
     } catch (e) {
       debugPrint('Error initializing camera: $e');
@@ -110,6 +115,86 @@ class _CameraPageState extends State<CameraPage> {
         }
       }
     }
+  }
+
+  void _startBrightnessMonitoring() {
+    if (_controller == null || !_controller!.value.isInitialized) {
+      return;
+    }
+
+    try {
+      _controller!.startImageStream((CameraImage image) {
+        // Check brightness every 500ms to avoid performance issues
+        final now = DateTime.now();
+        if (_lastBrightnessCheck == null ||
+            now.difference(_lastBrightnessCheck!).inMilliseconds > 500) {
+          _lastBrightnessCheck = now;
+          _checkBrightness(image);
+        }
+      });
+    } catch (e) {
+      debugPrint('Error starting image stream: $e');
+    }
+  }
+
+  void _checkBrightness(CameraImage image) {
+    try {
+      final brightness = _calculateBrightness(image);
+      if (mounted) {
+        setState(() {
+          _isLowLight = brightness < _lowLightThreshold;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking brightness: $e');
+    }
+  }
+
+  double _calculateBrightness(CameraImage image) {
+    // Calculate average brightness from the image
+    // For YUV420 format (Android), use Y plane
+    // For BGRA8888 format (iOS), calculate from RGB
+    
+    if (image.format.group == ImageFormatGroup.yuv420) {
+      // Android: Use Y plane (luminance)
+      final yPlane = image.planes[0];
+      final bytes = yPlane.bytes;
+      int sum = 0;
+      
+      // Sample every 10th pixel for performance
+      for (int i = 0; i < bytes.length; i += 10) {
+        sum += bytes[i];
+      }
+      
+      final avg = sum / (bytes.length / 10);
+      return avg / 255.0; // Normalize to 0.0-1.0
+    } else if (image.format.group == ImageFormatGroup.bgra8888) {
+      // iOS: Calculate luminance from RGB
+      final plane = image.planes[0];
+      final bytes = plane.bytes;
+      int sum = 0;
+      int count = 0;
+      
+      // Sample every 40th pixel (BGRA = 4 bytes per pixel, so every 10th pixel)
+      for (int i = 0; i < bytes.length - 3; i += 40) {
+        // Extract RGB values (BGRA format)
+        final b = bytes[i];
+        final g = bytes[i + 1];
+        final r = bytes[i + 2];
+        
+        // Calculate luminance using standard formula
+        final luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+        sum += luminance.toInt();
+        count++;
+      }
+      
+      if (count > 0) {
+        final avg = sum / count;
+        return avg / 255.0; // Normalize to 0.0-1.0
+      }
+    }
+    
+    return 0.5; // Default if format not recognized
   }
 
   void _startSensorListening() {
@@ -215,6 +300,8 @@ class _CameraPageState extends State<CameraPage> {
       DeviceOrientation.portraitDown,
     ]);
     _accelerometerSubscription?.cancel();
+    _imageStreamSubscription?.cancel();
+    _controller?.stopImageStream();
     _controller?.dispose();
     super.dispose();
   }
@@ -252,6 +339,49 @@ class _CameraPageState extends State<CameraPage> {
                   roll: _roll,
                   pitch: _pitch,
                   isLevel: _isLevel,
+                ),
+              ),
+
+            // Low light warning message
+            if (_isInitialized && _isLowLight)
+              Positioned(
+                top: 80.h,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 32.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline,
+                          color: AppColors.textLight,
+                          size: 20.sp,
+                        ),
+                        SizedBox(width: 8.w),
+                        Flexible(
+                          child: Text(
+                            'Low light detected. Please increase the room lighting.',
+                            style: TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
 
