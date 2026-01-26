@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../constants/api_constants.dart';
 import 'http_services.dart';
@@ -592,6 +593,89 @@ class AuthService {
             'Connection timeout. Please check your internet connection.';
       } else if (e.type == DioExceptionType.connectionError) {
         errorMessage = 'No internet connection. Please check your network.';
+      }
+
+      return Left(errorMessage);
+    } catch (e) {
+      return Left('Unexpected error: ${e.toString()}');
+    }
+  }
+
+  /// Update profile picture
+  Future<Either<String, String>> updateProfilePicture(XFile imageFile) async {
+    try {
+      // Create FormData for multipart request
+      final formData = FormData();
+
+      // Add image file with field name 'profilePicture'
+      formData.files.add(
+        MapEntry(
+          'profilePicture',
+          await MultipartFile.fromFile(
+            imageFile.path,
+            filename: imageFile.name,
+          ),
+        ),
+      );
+
+      final response = await _dio.put(
+        ApiConstants.profilePictureUrl,
+        data: formData,
+      );
+
+      // Check for successful status codes (200-299)
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300 &&
+          response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+
+        // Check if request was successful
+        final success = responseData['success'] as bool? ?? false;
+
+        if (!success) {
+          final message = responseData['message'] as String? ??
+              'Failed to update profile picture';
+          return Left(message);
+        }
+
+        final data = responseData['data'] as Map<String, dynamic>;
+        final profilePictureUrl = data['profilePicture'] as String? ?? '';
+
+        return Right(profilePictureUrl);
+      } else {
+        return const Left('Failed to update profile picture. Please try again.');
+      }
+    } on DioException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+
+      if (e.response != null && e.response!.data != null) {
+        final errorData = e.response!.data;
+        if (errorData is Map<String, dynamic>) {
+          if (errorData.containsKey('success') &&
+              errorData['success'] == false &&
+              errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          } else if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          } else if (errorData.containsKey('error')) {
+            errorMessage = errorData['error'] as String;
+          }
+        } else if (errorData is String) {
+          errorMessage = errorData;
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage =
+            'Connection timeout. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection. Please check your network.';
+      }
+
+      // Log the full error for debugging
+      debugPrint('Profile picture upload error: ${e.toString()}');
+      if (e.response != null) {
+        debugPrint('Response data: ${e.response!.data}');
       }
 
       return Left(errorMessage);

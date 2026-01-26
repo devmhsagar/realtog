@@ -1,14 +1,141 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../providers/auth_provider.dart';
 
-class ProfileTab extends ConsumerWidget {
+class ProfileTab extends ConsumerStatefulWidget {
   const ProfileTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends ConsumerState<ProfileTab> {
+  Future<void> _handleProfilePictureUpdate() async {
+    final ImagePicker imagePicker = ImagePicker();
+    final AuthService authService = AuthService();
+
+    // Show bottom sheet with options
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              child: Text(
+                'Select Profile Picture',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: AppColors.primary),
+              title: Text(
+                'Take Photo',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: AppColors.primary),
+              title: Text(
+                'Choose from Gallery',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+
+      // Pick image
+      final XFile? image = await imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+
+      if (!context.mounted) return;
+
+      // Close loading indicator
+      Navigator.of(context).pop();
+
+      if (image == null) return;
+
+      // Upload image
+      final result = await authService.updateProfilePicture(image);
+
+      if (!context.mounted) return;
+
+      result.fold(
+        (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        },
+        (profilePictureUrl) {
+          // Invalidate profile data to refresh with new picture
+          ref.invalidate(profileDataProvider);
+
+          // Show success snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Profile picture updated successfully'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (context.mounted) {
+        // Close loading indicator if still open
+        Navigator.of(context).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileDataProvider);
 
     return SafeArea(
@@ -24,6 +151,7 @@ class ProfileTab extends ConsumerWidget {
                       child: _ProfileAvatar(
                         profilePicture: profileUser.profilePicture,
                         name: profileUser.name,
+                        onTap: _handleProfilePictureUpdate,
                       ),
                     ),
                     SizedBox(height: 10.h),
@@ -175,10 +303,12 @@ class ProfileTab extends ConsumerWidget {
 class _ProfileAvatar extends StatefulWidget {
   final String? profilePicture;
   final String name;
+  final VoidCallback onTap;
 
   const _ProfileAvatar({
     required this.profilePicture,
     required this.name,
+    required this.onTap,
   });
 
   @override
@@ -194,31 +324,58 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
         widget.profilePicture!.isNotEmpty &&
         !_imageError;
 
-    return CircleAvatar(
-      radius: 40.r,
-      backgroundColor: AppColors.primary,
-      backgroundImage: hasValidImage
-          ? NetworkImage(widget.profilePicture!)
-          : null,
-      child: !hasValidImage
-          ? Text(
-              widget.name.isNotEmpty
-                  ? widget.name[0].toUpperCase()
-                  : '?',
-              style: TextStyle(
-                fontSize: 32.sp,
-                fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 40.r,
+            backgroundColor: AppColors.primary,
+            backgroundImage: hasValidImage
+                ? NetworkImage(widget.profilePicture!)
+                : null,
+            child: !hasValidImage
+                ? Text(
+                    widget.name.isNotEmpty
+                        ? widget.name[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      fontSize: 32.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textLight,
+                    ),
+                  )
+                : null,
+            onBackgroundImageError: (exception, stackTrace) {
+              if (mounted) {
+                setState(() {
+                  _imageError = true;
+                });
+              }
+            },
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.all(4.w),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.background,
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.camera_alt,
+                size: 16.sp,
                 color: AppColors.textLight,
               ),
-            )
-          : null,
-      onBackgroundImageError: (exception, stackTrace) {
-        if (mounted) {
-          setState(() {
-            _imageError = true;
-          });
-        }
-      },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

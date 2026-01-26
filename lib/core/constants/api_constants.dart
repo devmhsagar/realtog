@@ -23,4 +23,7 @@ class ApiConstants {
 
   // Messaging endpoints
   static const String messagesUrl = "/messages/user-admin/messages";
+
+  // Profile picture endpoints
+  static const String profilePictureUrl = "/users/profile-picture";
 }
