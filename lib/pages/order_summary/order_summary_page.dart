@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -89,6 +90,10 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
           // Handle success - navigate to webview with session URL
           final sessionUrl = data['sessionUrl'] as String?;
           final sessionId = data['sessionId'] as String?;
+
+          debugPrint('Checkout session created:');
+          debugPrint('Session URL: $sessionUrl');
+          debugPrint('Session ID: $sessionId');
 
           if (sessionUrl == null || sessionUrl.isEmpty) {
             if (mounted) {
