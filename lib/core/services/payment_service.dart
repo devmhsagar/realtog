@@ -1,23 +1,40 @@
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:image_picker/image_picker.dart';
 import '../constants/api_constants.dart';
 import 'http_services.dart';
 
 class PaymentService {
   final Dio _dio = DioService().client;
 
-  /// Create a checkout session with plan ID and image paths
+  /// Create a checkout session with plan ID and image files
   Future<Either<String, Map<String, dynamic>>> createCheckoutSession({
     required String planId,
-    required List<String> images,
+    required List<XFile> images,
   }) async {
     try {
+      // Create FormData for multipart request
+      final formData = FormData();
+
+      // Add plan_id
+      formData.fields.add(MapEntry('plan_id', planId));
+
+      // Add images as files
+      for (var image in images) {
+        formData.files.add(
+          MapEntry(
+            'images',
+            await MultipartFile.fromFile(
+              image.path,
+              filename: image.name,
+            ),
+          ),
+        );
+      }
+
       final response = await _dio.post(
         ApiConstants.paymentUrl,
-        data: {
-          'plan_id': planId,
-          'images': images,
-        },
+        data: formData,
       );
 
       // Check for successful status codes (200-299)

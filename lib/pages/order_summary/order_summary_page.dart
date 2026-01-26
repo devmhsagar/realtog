@@ -58,9 +58,14 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
     });
 
     try {
+      // Convert file paths to XFile objects
+      final imageFiles = widget.selectedImagePaths!
+          .map((path) => XFile(path))
+          .toList();
+
       final result = await _paymentService.createCheckoutSession(
         planId: widget.pricingPlanId,
-        images: widget.selectedImagePaths!,
+        images: imageFiles,
       );
 
       setState(() {
