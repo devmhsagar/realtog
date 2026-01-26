@@ -10,6 +10,7 @@ import '../../pages/home/home_page.dart';
 import '../../pages/pricing/pricing_page.dart';
 import '../../pages/select_images/select_images_page.dart';
 import '../../pages/order_summary/order_summary_page.dart';
+import '../../pages/payment/checkout_webview_page.dart';
 import '../../providers/auth_provider.dart';
 
 /// Router configuration provider
@@ -31,6 +32,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/select-images',
       );
       final isOnPaymentPage = state.matchedLocation.startsWith('/payment');
+      final isOnCheckoutPage = state.matchedLocation.startsWith('/checkout');
 
       // If still loading auth state, don't redirect yet
       if (authState.isLoading) {
@@ -58,7 +60,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           (isOnHomePage ||
               isOnPricingPage ||
               isOnSelectImagesPage ||
-              isOnPaymentPage)) {
+              isOnPaymentPage ||
+              isOnCheckoutPage)) {
         return '/login';
       }
 
@@ -182,6 +185,24 @@ final routerProvider = Provider<GoRouter>((ref) {
             declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
             totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             selectedImagePaths: imagePathsList,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/checkout',
+        name: 'checkout',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) {
+            // Fallback if no data provided
+            return const CheckoutWebViewPage(
+              sessionUrl: '',
+              sessionId: '',
+            );
+          }
+          return CheckoutWebViewPage(
+            sessionUrl: extra['sessionUrl'] as String? ?? '',
+            sessionId: extra['sessionId'] as String? ?? '',
           );
         },
       ),

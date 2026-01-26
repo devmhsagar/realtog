@@ -18,6 +18,9 @@ class ApiConstants {
   // Pricing endpoints
   static const String pricingUrl = "/pricing";
 
+  // Payment endpoints
+  static const String paymentUrl = "/payment/create-checkout";
+
   // Order endpoints
   static const String ordersUrl = "/orders";
 
