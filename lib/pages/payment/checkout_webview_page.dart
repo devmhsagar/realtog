@@ -157,11 +157,13 @@ class _CheckoutWebViewPageState extends ConsumerState<CheckoutWebViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const ReusableAppBar(title: 'Payment'),
-      body: Stack(
-        children: [
+      body: SafeArea(
+        bottom: true,
+        child: Stack(
+          children: [
           // WebView
           WebViewWidget(controller: _controller),
-          
+
           // Error overlay
           if (_error != null)
             Container(
@@ -247,7 +249,7 @@ class _CheckoutWebViewPageState extends ConsumerState<CheckoutWebViewPage> {
                 ),
               ),
             ),
-          
+
           // Loading overlay
           if (_isLoading && _error == null)
             Container(
@@ -269,27 +271,12 @@ class _CheckoutWebViewPageState extends ConsumerState<CheckoutWebViewPage> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    if (_currentUrl != null) ...[
-                      SizedBox(height: 8.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24.w),
-                        child: Text(
-                          _currentUrl!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
