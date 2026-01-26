@@ -449,56 +449,40 @@ class _CameraPageState extends State<CameraPage> {
                 ),
               ),
 
-              // Bottom controls
+              // Capture button - top right
               Positioned(
-                bottom: 0,
-                left: 0,
+                top: 0,
                 right: 0,
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 32.h,
-                    horizontal: 16.w,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.7),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _isCapturing ? null : _captureImage,
-                      child: Container(
-                        width: 36.w,
-                        height: 36.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _isCapturing
-                              ? AppColors.textSecondary
-                              : AppColors.textLight,
-                          border: Border.all(
-                            color: AppColors.textLight,
-                            width: 2.w,
-                          ),
+                  padding: EdgeInsets.all(16.w),
+                  child: GestureDetector(
+                    onTap: _isCapturing ? null : _captureImage,
+                    child: Container(
+                      width: 36.w,
+                      height: 36.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _isCapturing
+                            ? AppColors.textSecondary
+                            : AppColors.textLight,
+                        border: Border.all(
+                          color: AppColors.textLight,
+                          width: 2.w,
                         ),
-                        child: _isCapturing
-                            ? Padding(
-                                padding: EdgeInsets.all(10.w),
-                                child: const CircularProgressIndicator(
-                                  color: AppColors.primary,
-                                  strokeWidth: 3,
-                                ),
-                              )
-                            : Icon(
-                                Icons.camera_alt,
-                                color: AppColors.primary,
-                                size: 16.sp,
-                              ),
                       ),
+                      child: _isCapturing
+                          ? Padding(
+                              padding: EdgeInsets.all(10.w),
+                              child: const CircularProgressIndicator(
+                                color: AppColors.primary,
+                                strokeWidth: 3,
+                              ),
+                            )
+                          : Icon(
+                              Icons.camera_alt,
+                              color: AppColors.primary,
+                              size: 16.sp,
+                            ),
                     ),
                   ),
                 ),
