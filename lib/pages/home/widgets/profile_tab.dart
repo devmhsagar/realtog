@@ -14,6 +14,8 @@ class ProfileTab extends ConsumerStatefulWidget {
 }
 
 class _ProfileTabState extends ConsumerState<ProfileTab> {
+  bool _isUploadingImage = false;
+
   Future<void> _handleProfilePictureUpdate() async {
     final ImagePicker imagePicker = ImagePicker();
     final AuthService authService = AuthService();
@@ -70,32 +72,27 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     if (source == null) return;
 
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-
       // Pick image
       final XFile? image = await imagePicker.pickImage(
         source: source,
         imageQuality: 85,
       );
 
-      if (!context.mounted) return;
+      if (!context.mounted || image == null) return;
 
-      // Close loading indicator
-      Navigator.of(context).pop();
-
-      if (image == null) return;
+      // Set uploading state
+      setState(() {
+        _isUploadingImage = true;
+      });
 
       // Upload image
       final result = await authService.updateProfilePicture(image);
 
       if (!context.mounted) return;
+
+      setState(() {
+        _isUploadingImage = false;
+      });
 
       result.fold(
         (error) {
@@ -121,8 +118,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       );
     } catch (e) {
       if (context.mounted) {
-        // Close loading indicator if still open
-        Navigator.of(context).pop();
+        setState(() {
+          _isUploadingImage = false;
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -152,6 +150,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         profilePicture: profileUser.profilePicture,
                         name: profileUser.name,
                         onTap: _handleProfilePictureUpdate,
+                        isLoading: _isUploadingImage,
                       ),
                     ),
                     SizedBox(height: 10.h),
@@ -304,11 +303,13 @@ class _ProfileAvatar extends StatefulWidget {
   final String? profilePicture;
   final String name;
   final VoidCallback onTap;
+  final bool isLoading;
 
   const _ProfileAvatar({
     required this.profilePicture,
     required this.name,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
@@ -317,63 +318,158 @@ class _ProfileAvatar extends StatefulWidget {
 
 class _ProfileAvatarState extends State<_ProfileAvatar> {
   bool _imageError = false;
+  bool _imageLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set initial loading state if there's a profile picture to load
+    if (widget.profilePicture != null && widget.profilePicture!.isNotEmpty) {
+      _imageLoading = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_ProfileAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset loading state when profile picture changes
+    if (widget.profilePicture != oldWidget.profilePicture) {
+      if (widget.profilePicture != null && widget.profilePicture!.isNotEmpty) {
+        setState(() {
+          _imageLoading = true;
+          _imageError = false;
+        });
+      } else {
+        setState(() {
+          _imageLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final hasValidImage = widget.profilePicture != null &&
         widget.profilePicture!.isNotEmpty &&
         !_imageError;
+    final showLoader = widget.isLoading || _imageLoading;
+    // Hide image during upload to show loader
+    final showImage = hasValidImage && !widget.isLoading;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: widget.isLoading ? null : widget.onTap,
       child: Stack(
         children: [
+          // Base CircleAvatar with background color
           CircleAvatar(
             radius: 40.r,
             backgroundColor: AppColors.primary,
-            backgroundImage: hasValidImage
-                ? NetworkImage(widget.profilePicture!)
-                : null,
-            child: !hasValidImage
-                ? Text(
-                    widget.name.isNotEmpty
-                        ? widget.name[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      fontSize: 32.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textLight,
+            child: showLoader
+                ? CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.textLight,
                     ),
                   )
-                : null,
-            onBackgroundImageError: (exception, stackTrace) {
-              if (mounted) {
-                setState(() {
-                  _imageError = true;
-                });
-              }
-            },
+                : !hasValidImage
+                    ? Text(
+                        widget.name.isNotEmpty
+                            ? widget.name[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 32.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textLight,
+                        ),
+                      )
+                    : null,
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.background,
-                  width: 2,
+          // Image overlay with loading state (hidden during upload)
+          if (showImage)
+            Positioned.fill(
+              child: ClipOval(
+                child: Image.network(
+                  widget.profilePicture!,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      // Image loaded successfully
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _imageLoading = false;
+                          });
+                        }
+                      });
+                      return child;
+                    }
+                    // Still loading - show progress
+                    return Container(
+                      color: AppColors.primary,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.textLight,
+                          ),
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _imageError = true;
+                          _imageLoading = false;
+                        });
+                      }
+                    });
+                    return Container(
+                      color: AppColors.primary,
+                      child: Center(
+                        child: Text(
+                          widget.name.isNotEmpty
+                              ? widget.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
-              child: Icon(
-                Icons.camera_alt,
-                size: 16.sp,
-                color: AppColors.textLight,
+            ),
+          // Camera icon overlay (hide during loading)
+          if (!showLoader)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.all(4.w),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.background,
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.camera_alt,
+                  size: 16.sp,
+                  color: AppColors.textLight,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
