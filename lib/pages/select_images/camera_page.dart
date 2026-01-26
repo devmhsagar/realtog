@@ -31,7 +31,7 @@ class _CameraPageState extends State<CameraPage> {
       10.0; // Degrees considered "vertically level" (wider range for detection)
   bool _isLowLight = false;
   static const double _lowLightThreshold =
-      0.15; // Brightness threshold (0.0 to 1.0)
+      0.60; // Brightness threshold (0.0 to 1.0) - 60% or less shows warning
   DateTime? _lastBrightnessCheck;
 
   @override
@@ -369,44 +369,42 @@ class _CameraPageState extends State<CameraPage> {
                 ),
 
               // Low light warning message
-              if (_isInitialized && _isLowLight)
+              if (1 == 1)
                 Positioned(
-                  top: 80.h,
+                  bottom: 10,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 32.w),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.lightbulb_outline,
-                            color: AppColors.textLight,
-                            size: 20.sp,
-                          ),
-                          SizedBox(width: 8.w),
-                          Flexible(
-                            child: Text(
-                              'Low light detected. Please increase the room lighting.',
-                              style: TextStyle(
-                                color: AppColors.textLight,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline,
+                          color: AppColors.textLight,
+                          size: 10.sp,
+                        ),
+                        SizedBox(width: 8.w),
+                        Flexible(
+                          child: Text(
+                            'Low light detected. Please increase the room lighting.',
+                            style: TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 6.sp,
+                              fontWeight: FontWeight.w600,
                             ),
+                            textAlign: TextAlign.center,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
