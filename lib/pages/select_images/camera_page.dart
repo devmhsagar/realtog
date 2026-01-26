@@ -369,32 +369,32 @@ class _CameraPageState extends State<CameraPage> {
                 ),
 
               // Low light warning message
-              if (1 == 1)
+              if (_isInitialized && _isLowLight)
                 Positioned(
                   bottom: 10,
                   left: 0,
                   right: 0,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          color: AppColors.textLight,
-                          size: 10.sp,
-                        ),
-                        SizedBox(width: 8.w),
-                        Flexible(
-                          child: Text(
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 10.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.lightbulb_outline,
+                            color: AppColors.textLight,
+                            size: 10.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
                             'Low light detected. Please increase the room lighting.',
                             style: TextStyle(
                               color: AppColors.textLight,
@@ -403,8 +403,8 @@ class _CameraPageState extends State<CameraPage> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
