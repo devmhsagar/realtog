@@ -14,12 +14,29 @@ class ProfileTab extends ConsumerWidget {
     return SafeArea(
       child: profileAsync.when(
         data: (profileUser) => Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           child: Column(
             children: [
               Expanded(
                 child: ListView(
                   children: [
+                    Center(
+                      child: CircleAvatar(
+                        radius: 40.r,
+                        backgroundColor: AppColors.primary,
+                        child: Text(
+                          profileUser.name.isNotEmpty
+                              ? profileUser.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
                     _ProfileMenuItem(
                       icon: Icons.person_outline,
                       label: 'Name',
@@ -203,4 +220,3 @@ class _ProfileMenuItem extends StatelessWidget {
     );
   }
 }
-
