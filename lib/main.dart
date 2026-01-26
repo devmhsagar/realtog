@@ -31,7 +31,7 @@ class App extends ConsumerWidget {
       builder: (context, child) {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          title: 'RealTog',
+          title: 'REALTOG',
           theme: AppTheme.lightTheme,
           routerConfig: router,
         );
