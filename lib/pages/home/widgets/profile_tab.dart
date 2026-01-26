@@ -21,19 +21,9 @@ class ProfileTab extends ConsumerWidget {
                 child: ListView(
                   children: [
                     Center(
-                      child: CircleAvatar(
-                        radius: 40.r,
-                        backgroundColor: AppColors.primary,
-                        child: Text(
-                          profileUser.name.isNotEmpty
-                              ? profileUser.name[0].toUpperCase()
-                              : '?',
-                          style: TextStyle(
-                            fontSize: 32.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textLight,
-                          ),
-                        ),
+                      child: _ProfileAvatar(
+                        profilePicture: profileUser.profilePicture,
+                        name: profileUser.name,
                       ),
                     ),
                     SizedBox(height: 10.h),
@@ -178,6 +168,57 @@ class ProfileTab extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ProfileAvatar extends StatefulWidget {
+  final String? profilePicture;
+  final String name;
+
+  const _ProfileAvatar({
+    required this.profilePicture,
+    required this.name,
+  });
+
+  @override
+  State<_ProfileAvatar> createState() => _ProfileAvatarState();
+}
+
+class _ProfileAvatarState extends State<_ProfileAvatar> {
+  bool _imageError = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValidImage = widget.profilePicture != null &&
+        widget.profilePicture!.isNotEmpty &&
+        !_imageError;
+
+    return CircleAvatar(
+      radius: 40.r,
+      backgroundColor: AppColors.primary,
+      backgroundImage: hasValidImage
+          ? NetworkImage(widget.profilePicture!)
+          : null,
+      child: !hasValidImage
+          ? Text(
+              widget.name.isNotEmpty
+                  ? widget.name[0].toUpperCase()
+                  : '?',
+              style: TextStyle(
+                fontSize: 32.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textLight,
+              ),
+            )
+          : null,
+      onBackgroundImageError: (exception, stackTrace) {
+        if (mounted) {
+          setState(() {
+            _imageError = true;
+          });
+        }
+      },
     );
   }
 }

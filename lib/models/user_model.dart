@@ -5,6 +5,7 @@ class UserModel {
   final String phone;
   final bool emailVerified;
   final String role;
+  final String? profilePicture;
 
   UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.phone,
     required this.emailVerified,
     required this.role,
+    this.profilePicture,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class UserModel {
       phone: json['phone'] as String,
       emailVerified: json['emailVerified'] as bool,
       role: json['role'] as String,
+      profilePicture: json['profilePicture'] as String?,
     );
   }
 
@@ -34,6 +37,7 @@ class UserModel {
       'phone': phone,
       'emailVerified': emailVerified,
       'role': role,
+      'profilePicture': profilePicture,
     };
   }
 }
