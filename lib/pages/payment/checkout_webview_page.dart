@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/reusable_appbar.dart';
+import '../../providers/order_provider.dart';
 
 class CheckoutWebViewPage extends ConsumerStatefulWidget {
   final String sessionUrl;
@@ -123,8 +125,11 @@ class _CheckoutWebViewPageState extends ConsumerState<CheckoutWebViewPage> {
     // You can add logic here to handle payment success/failure
     // For example, check the URL for success indicators
     if (url.contains('success')) {
-      // Payment successful - you might want to navigate back or show success message
+      // Payment successful - navigate to Orders tab
       if (mounted) {
+        // Refresh orders before navigating
+        ref.invalidate(ordersProvider);
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Payment successful!'),
@@ -132,10 +137,13 @@ class _CheckoutWebViewPageState extends ConsumerState<CheckoutWebViewPage> {
             duration: Duration(seconds: 2),
           ),
         );
-        // Navigate back after a short delay
+        // Navigate to home with Orders tab (index 1) after a short delay
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
-            Navigator.of(context).pop(true); // Return true to indicate success
+            // Pop the webview page first
+            Navigator.of(context).pop();
+            // Then navigate to home with Orders tab
+            context.go('/home', extra: {'initialTabIndex': 1});
           }
         });
       }

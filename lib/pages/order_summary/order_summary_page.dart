@@ -109,37 +109,18 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
           }
 
           if (mounted) {
-            Navigator.of(context)
-                .push(
-                  MaterialPageRoute(
-                    builder: (context) => CheckoutWebViewPage(
-                      sessionUrl: sessionUrl,
-                      sessionId: sessionId ?? '',
-                    ),
-                  ),
-                )
-                .then((paymentSuccess) {
-                  // Handle payment completion
-                  if (paymentSuccess == true) {
-                    // Payment was successful, you might want to refresh orders or navigate
-                    ref.invalidate(ordersProvider);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Payment completed successfully!'),
-                          backgroundColor: AppColors.success,
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      // Navigate to home after successful payment
-                      Future.delayed(const Duration(seconds: 1), () {
-                        if (mounted) {
-                          context.go('/home');
-                        }
-                      });
-                    }
-                  }
-                });
+            // Navigate to webview - payment success will be handled in the webview
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CheckoutWebViewPage(
+                  sessionUrl: sessionUrl,
+                  sessionId: sessionId ?? '',
+                ),
+              ),
+            ).then((_) {
+              // Refresh orders when returning from payment (if user cancels or navigates back)
+              ref.invalidate(ordersProvider);
+            });
           }
         },
       );

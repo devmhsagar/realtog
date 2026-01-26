@@ -11,14 +11,22 @@ import 'widgets/messages_tab.dart';
 import 'widgets/profile_tab.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key});
+  final int? initialTabIndex;
+
+  const HomePage({super.key, this.initialTabIndex});
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTabIndex ?? 0;
+  }
 
   @override
   Widget build(BuildContext context) {
