@@ -110,17 +110,19 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
 
           if (mounted) {
             // Navigate to webview - payment success will be handled in the webview
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CheckoutWebViewPage(
-                  sessionUrl: sessionUrl,
-                  sessionId: sessionId ?? '',
-                ),
-              ),
-            ).then((_) {
-              // Refresh orders when returning from payment (if user cancels or navigates back)
-              ref.invalidate(ordersProvider);
-            });
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => CheckoutWebViewPage(
+                      sessionUrl: sessionUrl,
+                      sessionId: sessionId ?? '',
+                    ),
+                  ),
+                )
+                .then((_) {
+                  // Refresh orders when returning from payment (if user cancels or navigates back)
+                  ref.invalidate(ordersProvider);
+                });
           }
         },
       );
@@ -289,92 +291,95 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
               ),
               SizedBox(height: 32.h),
               // Payment Method Section
-              Text(
-                'Payment Method',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              InkWell(
-                onTap: _isLoadingCheckout ? null : _handlePaymentMethodTap,
-                borderRadius: BorderRadius.circular(16.r),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12.w),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: _isLoadingCheckout
-                            ? SizedBox(
-                                width: 24.w,
-                                height: 24.h,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primary,
-                                  ),
-                                ),
-                              )
-                            : Icon(
-                                Icons.payment,
-                                size: 24.sp,
-                                color: AppColors.primary,
-                              ),
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Stripe Payment',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              _isLoadingCheckout
-                                  ? 'Creating checkout session...'
-                                  : 'Secure payment processing',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 32.h),
+              // Text(
+              //   'Payment Method',
+              //   style: TextStyle(
+              //     fontSize: 18.sp,
+              //     fontWeight: FontWeight.bold,
+              //     color: AppColors.textPrimary,
+              //   ),
+              // ),
+              // SizedBox(height: 16.h),
+              // InkWell(
+              //   onTap: _isLoadingCheckout ? null : _handlePaymentMethodTap,
+              //   borderRadius: BorderRadius.circular(16.r),
+              //   child: Container(
+              //     width: double.infinity,
+              //     padding: EdgeInsets.all(20.w),
+              //     decoration: BoxDecoration(
+              //       color: AppColors.surface,
+              //       borderRadius: BorderRadius.circular(16.r),
+              //       border: Border.all(color: AppColors.border),
+              //     ),
+              //     child: Row(
+              //       children: [
+              //         Container(
+              //           padding: EdgeInsets.all(12.w),
+              //           decoration: BoxDecoration(
+              //             color: AppColors.primary.withValues(alpha: 0.1),
+              //             borderRadius: BorderRadius.circular(8.r),
+              //           ),
+              //           child: _isLoadingCheckout
+              //               ? SizedBox(
+              //                   width: 24.w,
+              //                   height: 24.h,
+              //                   child: CircularProgressIndicator(
+              //                     strokeWidth: 2,
+              //                     valueColor: AlwaysStoppedAnimation<Color>(
+              //                       AppColors.primary,
+              //                     ),
+              //                   ),
+              //                 )
+              //               : Icon(
+              //                   Icons.payment,
+              //                   size: 24.sp,
+              //                   color: AppColors.primary,
+              //                 ),
+              //         ),
+              //         SizedBox(width: 16.w),
+              //         Expanded(
+              //           child: Column(
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Text(
+              //                 'Stripe Payment',
+              //                 style: TextStyle(
+              //                   fontSize: 16.sp,
+              //                   fontWeight: FontWeight.w600,
+              //                   color: AppColors.textPrimary,
+              //                 ),
+              //               ),
+              //               SizedBox(height: 4.h),
+              //               Text(
+              //                 _isLoadingCheckout
+              //                     ? 'Creating checkout session...'
+              //                     : 'Secure payment processing',
+              //                 style: TextStyle(
+              //                   fontSize: 14.sp,
+              //                   color: AppColors.textSecondary,
+              //                 ),
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //         Icon(
+              //           Icons.arrow_forward_ios,
+              //           size: 16.sp,
+              //           color: AppColors.textSecondary,
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+              // SizedBox(height: 32.h),
               // Place Order Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _handlePlaceOrder,
+                  //onPressed: _isProcessing ? null : _handlePlaceOrder,
+                  onPressed: _isLoadingCheckout
+                      ? null
+                      : _handlePaymentMethodTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.textLight,
@@ -399,7 +404,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                           ),
                         )
                       : Text(
-                          'Confirm Order',
+                          'Pay Now',
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w600,
