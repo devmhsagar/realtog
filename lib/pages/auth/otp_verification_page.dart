@@ -74,6 +74,16 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
       return;
     }
 
+    // Forgot password flow: no need to call verifyOtpUrl.
+    // We can proceed directly to the reset password API which validates OTP.
+    if (widget.source != 'register') {
+      context.push(
+        '/reset-password',
+        extra: {'email': widget.email, 'otp': otp},
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -106,9 +116,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
             ),
           );
           context.go('/home');
-        } else {
-          // Forgot password flow: navigate to reset password
-          context.push('/reset-password', extra: {'email': email, 'otp': otp});
         }
       },
     );
