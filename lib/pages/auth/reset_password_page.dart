@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:realtog/core/constants/app_colors.dart';
 import 'package:realtog/core/services/auth_service.dart';
 
@@ -24,8 +23,34 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  static final _lowerCaseRegex = RegExp(r'[a-z]');
+  static final _upperCaseRegex = RegExp(r'[A-Z]');
+  static final _specialCharRegex = RegExp(
+    r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;`~/]',
+  );
+
+  bool _hasMinLength(String value) => value.length >= 8;
+  bool _hasLowerCase(String value) => _lowerCaseRegex.hasMatch(value);
+  bool _hasUpperCase(String value) => _upperCaseRegex.hasMatch(value);
+  bool _hasSpecialChar(String value) => _specialCharRegex.hasMatch(value);
+
+  bool get _newPasswordIsValid =>
+      _hasMinLength(_newPasswordController.text) &&
+      _hasLowerCase(_newPasswordController.text) &&
+      _hasUpperCase(_newPasswordController.text) &&
+      _hasSpecialChar(_newPasswordController.text);
+
+  void _onNewPasswordChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _newPasswordController.addListener(_onNewPasswordChanged);
+  }
+
   @override
   void dispose() {
+    _newPasswordController.removeListener(_onNewPasswordChanged);
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -149,11 +174,38 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your new password';
                               }
-                              if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
+                              if (!_hasMinLength(value)) {
+                                return 'Password must be at least 8 characters';
+                              }
+                              if (!_hasLowerCase(value)) {
+                                return 'Password must contain at least one lowercase letter';
+                              }
+                              if (!_hasUpperCase(value)) {
+                                return 'Password must contain at least one uppercase letter';
+                              }
+                              if (!_hasSpecialChar(value)) {
+                                return 'Password must contain at least one special character';
                               }
                               return null;
                             },
+                          ),
+                          SizedBox(height: 12.h),
+
+                          // Password requirements checklist
+                          _PasswordRequirementsList(
+                            password: _newPasswordController.text,
+                            hasMinLength: _hasMinLength(
+                              _newPasswordController.text,
+                            ),
+                            hasLowerCase: _hasLowerCase(
+                              _newPasswordController.text,
+                            ),
+                            hasUpperCase: _hasUpperCase(
+                              _newPasswordController.text,
+                            ),
+                            hasSpecialChar: _hasSpecialChar(
+                              _newPasswordController.text,
+                            ),
                           ),
                           SizedBox(height: 20.h),
 
@@ -196,7 +248,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           SizedBox(
                             height: 56.h,
                             child: ElevatedButton(
-                              onPressed: _isLoading
+                              onPressed: _isLoading || !_newPasswordIsValid
                                   ? null
                                   : _handleResetPassword,
                               style: ElevatedButton.styleFrom(
@@ -241,6 +293,64 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PasswordRequirementsList extends StatelessWidget {
+  const _PasswordRequirementsList({
+    required this.password,
+    required this.hasMinLength,
+    required this.hasLowerCase,
+    required this.hasUpperCase,
+    required this.hasSpecialChar,
+  });
+
+  final String password;
+  final bool hasMinLength;
+  final bool hasLowerCase;
+  final bool hasUpperCase;
+  final bool hasSpecialChar;
+
+  @override
+  Widget build(BuildContext context) {
+    final requirements = <({String label, bool satisfied})>[
+      (label: 'At least 8 characters', satisfied: hasMinLength),
+      (label: 'One uppercase letter', satisfied: hasUpperCase),
+      (label: 'One lowercase letter', satisfied: hasLowerCase),
+      (label: 'One special character', satisfied: hasSpecialChar),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: requirements
+          .map(
+            (r) => Padding(
+              padding: EdgeInsets.only(bottom: 6.h),
+              child: Row(
+                children: [
+                  Icon(
+                    r.satisfied ? Icons.check_circle : Icons.circle_outlined,
+                    size: 20.r,
+                    color: r.satisfied
+                        ? AppColors.textLight
+                        : AppColors.textLight.withValues(alpha: 0.65),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    r.label,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: r.satisfied
+                          ? AppColors.textLight
+                          : AppColors.textLight.withValues(alpha: 0.75),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }
