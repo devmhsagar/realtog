@@ -16,6 +16,7 @@ class SelectImagesPage extends ConsumerStatefulWidget {
   final double declutteringPrice;
   final double totalPrice;
   final int maxImages;
+  final List<Map<String, dynamic>>? selectedOptionalFeatures;
 
   const SelectImagesPage({
     super.key,
@@ -25,6 +26,7 @@ class SelectImagesPage extends ConsumerStatefulWidget {
     required this.declutteringPrice,
     required this.totalPrice,
     required this.maxImages,
+    this.selectedOptionalFeatures,
   });
 
   @override
@@ -252,6 +254,7 @@ class _SelectImagesPageState extends ConsumerState<SelectImagesPage> {
         'declutteringPrice': widget.declutteringPrice,
         'totalPrice': widget.totalPrice,
         'selectedImagePaths': imagePaths,
+        'selectedOptionalFeatures': widget.selectedOptionalFeatures,
       },
     );
   }

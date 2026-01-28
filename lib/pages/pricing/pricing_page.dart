@@ -271,6 +271,17 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                             'declutteringPrice': declutteringPrice,
                             'totalPrice': totalPrice,
                             'maxImages': plan.maxImages,
+                            'selectedOptionalFeatures':
+                                hasOptionalFeatures && _isDeclutteringSelected
+                                ? plan.optionalFeatures!
+                                      .map(
+                                        (f) => {
+                                          'name': f.name,
+                                          'extraCharge': f.extraCharge,
+                                        },
+                                      )
+                                      .toList()
+                                : null,
                           },
                         );
                       },

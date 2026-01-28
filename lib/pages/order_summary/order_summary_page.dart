@@ -18,6 +18,7 @@ class OrderSummaryPage extends ConsumerStatefulWidget {
   final double declutteringPrice;
   final double totalPrice;
   final List<String>? selectedImagePaths;
+  final List<Map<String, dynamic>>? selectedOptionalFeatures;
 
   const OrderSummaryPage({
     super.key,
@@ -27,6 +28,7 @@ class OrderSummaryPage extends ConsumerStatefulWidget {
     required this.declutteringPrice,
     required this.totalPrice,
     this.selectedImagePaths,
+    this.selectedOptionalFeatures,
   });
 
   @override
@@ -64,9 +66,17 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
           .map((path) => XFile(path))
           .toList();
 
+      final optionalFeatures =
+          widget.hasDecluttering &&
+              widget.selectedOptionalFeatures != null &&
+              widget.selectedOptionalFeatures!.isNotEmpty
+          ? widget.selectedOptionalFeatures
+          : null;
+
       final result = await _paymentService.createCheckoutSession(
         planId: widget.pricingPlanId,
         images: imageFiles,
+        optionalFeatures: optionalFeatures,
       );
 
       setState(() {

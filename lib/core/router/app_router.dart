@@ -149,6 +149,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               maxImages: 0,
             );
           }
+          final selectedOptionalFeatures =
+              extra['selectedOptionalFeatures'] as List<dynamic>?;
+          List<Map<String, dynamic>>? optionalFeaturesList;
+          if (selectedOptionalFeatures != null) {
+            optionalFeaturesList = selectedOptionalFeatures
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
+          }
           return SelectImagesPage(
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
             basePrice: (extra['basePrice'] as num?)?.toDouble() ?? 0.0,
@@ -157,6 +165,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 (extra['declutteringPrice'] as num?)?.toDouble() ?? 0.0,
             totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             maxImages: extra['maxImages'] as int? ?? 0,
+            selectedOptionalFeatures: optionalFeaturesList,
           );
         },
       ),
@@ -174,6 +183,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               declutteringPrice: 0.0,
               totalPrice: 0.0,
               selectedImagePaths: null,
+              selectedOptionalFeatures: null,
             );
           }
           // Extract selected image paths if available
@@ -182,6 +192,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           List<String>? imagePathsList;
           if (selectedImagePaths != null) {
             imagePathsList = selectedImagePaths.cast<String>();
+          }
+          final selectedOptionalFeatures =
+              extra['selectedOptionalFeatures'] as List<dynamic>?;
+          List<Map<String, dynamic>>? optionalFeaturesList;
+          if (selectedOptionalFeatures != null) {
+            optionalFeaturesList = selectedOptionalFeatures
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
           }
 
           return OrderSummaryPage(
@@ -192,6 +210,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 (extra['declutteringPrice'] as num?)?.toDouble() ?? 0.0,
             totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             selectedImagePaths: imagePathsList,
+            selectedOptionalFeatures: optionalFeaturesList,
           );
         },
       ),
