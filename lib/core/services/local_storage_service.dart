@@ -21,10 +21,7 @@ class LocalStorageService {
     String pricingPlanId,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      _getSelectedImagesKey(pricingPlanId),
-      imagePaths,
-    );
+    await prefs.setStringList(_getSelectedImagesKey(pricingPlanId), imagePaths);
   }
 
   /// Get saved selected image paths for a specific package
@@ -38,7 +35,7 @@ class LocalStorageService {
     required String pricingPlanId,
     required double basePrice,
     required bool hasDecluttering,
-    required int declutteringPrice,
+    required double declutteringPrice,
     required double totalPrice,
     required int maxImages,
   }) async {
@@ -86,4 +83,3 @@ class LocalStorageService {
     await prefs.clear();
   }
 }
-

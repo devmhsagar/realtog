@@ -13,7 +13,7 @@ class SelectImagesPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
   final double basePrice;
   final bool hasDecluttering;
-  final int declutteringPrice;
+  final double declutteringPrice;
   final double totalPrice;
   final int maxImages;
 

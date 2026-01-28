@@ -1,3 +1,29 @@
+class OptionalFeature {
+  final String id;
+  final String name;
+  final double extraCharge;
+
+  OptionalFeature({
+    required this.id,
+    required this.name,
+    required this.extraCharge,
+  });
+
+  factory OptionalFeature.fromJson(Map<String, dynamic> json) {
+    return OptionalFeature(
+      id: json['_id'] as String,
+      name: json['name'] as String,
+      extraCharge: (json['extraCharge'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    '_id': id,
+    'name': name,
+    'extraCharge': extraCharge,
+  };
+}
+
 class PricingModel {
   final String id;
   final String name;
@@ -5,6 +31,7 @@ class PricingModel {
   final int maxImages;
   final String? shortDescription;
   final List<String>? whatsIncluded;
+  final List<OptionalFeature>? optionalFeatures;
 
   PricingModel({
     required this.id,
@@ -13,6 +40,7 @@ class PricingModel {
     required this.maxImages,
     this.shortDescription,
     this.whatsIncluded,
+    this.optionalFeatures,
   });
 
   factory PricingModel.fromJson(Map<String, dynamic> json) {
@@ -24,8 +52,16 @@ class PricingModel {
       shortDescription: json['shortDescription'] as String?,
       whatsIncluded: json['whatsIncluded'] != null
           ? (json['whatsIncluded'] as List<dynamic>)
-              .map((item) => item as String)
-              .toList()
+                .map((item) => item as String)
+                .toList()
+          : null,
+      optionalFeatures: json['optionalFeatures'] != null
+          ? (json['optionalFeatures'] as List<dynamic>)
+                .map(
+                  (item) =>
+                      OptionalFeature.fromJson(item as Map<String, dynamic>),
+                )
+                .toList()
           : null,
     );
   }
@@ -38,7 +74,8 @@ class PricingModel {
       'max_images': maxImages,
       if (shortDescription != null) 'shortDescription': shortDescription,
       if (whatsIncluded != null) 'whatsIncluded': whatsIncluded,
+      if (optionalFeatures != null)
+        'optionalFeatures': optionalFeatures!.map((f) => f.toJson()).toList(),
     };
   }
 }
-

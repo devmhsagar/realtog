@@ -33,20 +33,6 @@ class _PricingPageState extends ConsumerState<PricingPage> {
     ];
   }
 
-  /// Get decluttering price based on max_images
-  int _getDeclutteringPrice(int maxImages) {
-    switch (maxImages) {
-      case 10:
-        return 15;
-      case 20:
-        return 25;
-      case 40:
-        return 40;
-      default:
-        return 0;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final pricingAsync = ref.watch(pricingPlanProvider(widget.id));
@@ -55,11 +41,15 @@ class _PricingPageState extends ConsumerState<PricingPage> {
       appBar: const ReusableAppBar(title: 'Pricing Details'),
       body: pricingAsync.when(
         data: (plan) {
-          // Calculate decluttering price and total price
-          final int declutteringPrice = _getDeclutteringPrice(plan.maxImages);
+          final bool hasOptionalFeatures =
+              plan.optionalFeatures != null &&
+              plan.optionalFeatures!.isNotEmpty;
+          final double declutteringPrice = hasOptionalFeatures
+              ? plan.optionalFeatures!.first.extraCharge
+              : 0.0;
           double totalPrice = plan.price;
 
-          if (_isDeclutteringSelected) {
+          if (hasOptionalFeatures && _isDeclutteringSelected) {
             totalPrice = plan.price + declutteringPrice;
           }
 
@@ -200,70 +190,72 @@ class _PricingPageState extends ConsumerState<PricingPage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.h),
-                  // Image Decluttering Option
-                  Padding(
-                    padding: EdgeInsets.only(left: 16.w),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isDeclutteringSelected = !_isDeclutteringSelected;
-                        });
-                      },
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 20.w,
-                            height: 20.w,
-                            decoration: BoxDecoration(
-                              color: _isDeclutteringSelected
-                                  ? AppColors.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(4.r),
-                              border: Border.all(
-                                color: AppColors.primary,
-                                width: 2,
+                  if (hasOptionalFeatures) ...[
+                    SizedBox(height: 16.h),
+                    // Image Decluttering Option (from optionalFeatures)
+                    Padding(
+                      padding: EdgeInsets.only(left: 16.w),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isDeclutteringSelected = !_isDeclutteringSelected;
+                          });
+                        },
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 20.w,
+                              height: 20.w,
+                              decoration: BoxDecoration(
+                                color: _isDeclutteringSelected
+                                    ? AppColors.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(4.r),
+                                border: Border.all(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              child: _isDeclutteringSelected
+                                  ? Icon(
+                                      Icons.check,
+                                      size: 14.sp,
+                                      color: AppColors.textLight,
+                                    )
+                                  : null,
+                            ),
+                            SizedBox(width: 10.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Image Decluttering',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    '+\$${declutteringPrice.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: _isDeclutteringSelected
-                                ? Icon(
-                                    Icons.check,
-                                    size: 14.sp,
-                                    color: AppColors.textLight,
-                                  )
-                                : null,
-                          ),
-                          SizedBox(width: 10.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Image Decluttering',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                    height: 1.4,
-                                  ),
-                                ),
-                                SizedBox(height: 2.h),
-                                Text(
-                                  '+\$${declutteringPrice.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                   SizedBox(height: 20.h),
                   // Place Order Button
                   SizedBox(

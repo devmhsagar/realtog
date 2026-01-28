@@ -15,7 +15,7 @@ class OrderSummaryPage extends ConsumerStatefulWidget {
   final String pricingPlanId;
   final double basePrice;
   final bool hasDecluttering;
-  final int declutteringPrice;
+  final double declutteringPrice;
   final double totalPrice;
   final List<String>? selectedImagePaths;
 
@@ -276,7 +276,7 @@ class _PaymentPageState extends ConsumerState<OrderSummaryPage> {
                       SizedBox(height: 8.h),
                       _buildSummaryRow(
                         'Image Decluttering',
-                        '+ CA\$${widget.declutteringPrice}',
+                        '+ CA\$${widget.declutteringPrice.toStringAsFixed(2)}',
                         isAddon: true,
                       ),
                     ],

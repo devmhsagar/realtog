@@ -144,7 +144,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               pricingPlanId: '',
               basePrice: 0.0,
               hasDecluttering: false,
-              declutteringPrice: 0,
+              declutteringPrice: 0.0,
               totalPrice: 0.0,
               maxImages: 0,
             );
@@ -153,7 +153,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
             basePrice: (extra['basePrice'] as num?)?.toDouble() ?? 0.0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
-            declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
+            declutteringPrice:
+                (extra['declutteringPrice'] as num?)?.toDouble() ?? 0.0,
             totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             maxImages: extra['maxImages'] as int? ?? 0,
           );
@@ -170,7 +171,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               pricingPlanId: '',
               basePrice: 0.0,
               hasDecluttering: false,
-              declutteringPrice: 0,
+              declutteringPrice: 0.0,
               totalPrice: 0.0,
               selectedImagePaths: null,
             );
@@ -187,7 +188,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             pricingPlanId: extra['pricingPlanId'] as String? ?? '',
             basePrice: (extra['basePrice'] as num?)?.toDouble() ?? 0.0,
             hasDecluttering: extra['hasDecluttering'] as bool? ?? false,
-            declutteringPrice: extra['declutteringPrice'] as int? ?? 0,
+            declutteringPrice:
+                (extra['declutteringPrice'] as num?)?.toDouble() ?? 0.0,
             totalPrice: (extra['totalPrice'] as num?)?.toDouble() ?? 0.0,
             selectedImagePaths: imagePathsList,
           );
