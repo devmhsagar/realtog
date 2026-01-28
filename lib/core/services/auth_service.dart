@@ -12,6 +12,14 @@ import '../constants/api_constants.dart';
 import 'http_services.dart';
 import 'local_storage_service.dart';
 
+/// Result of successful registration (user + token; token is saved after OTP verify).
+class RegisterResult {
+  final UserModel user;
+  final String token;
+
+  RegisterResult({required this.user, required this.token});
+}
+
 class AuthService {
   final Dio _dio = DioService().client;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -119,14 +127,20 @@ class AuthService {
     return await _storage.read(key: 'access_token');
   }
 
+  /// Save token (used after OTP verification in registration flow).
+  Future<void> saveToken(String token) async {
+    await _storage.write(key: 'access_token', value: token);
+  }
+
   /// Check if user is authenticated (has valid token)
   Future<bool> isAuthenticated() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
   }
 
-  /// Register with name, email, phone, and password
-  Future<Either<String, UserModel>> register({
+  /// Register with name, email, phone, and password.
+  /// Returns user + token; token is not stored until OTP is verified.
+  Future<Either<String, RegisterResult>> register({
     required String name,
     required String email,
     required String phone,
@@ -154,19 +168,22 @@ class AuthService {
         final success = responseData['success'] as bool? ?? false;
 
         if (!success) {
-          // Handle success: false case
+          // Handle success: false case (e.g. "User with this email or phone already exists")
           final message =
               responseData['message'] as String? ?? 'Registration failed';
           return Left(message);
         }
 
         final data = responseData['data'] as Map<String, dynamic>;
-
-        // Parse user from response (don't store token for registration)
         final userJson = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userJson);
+        final token = data['token'] as String? ?? '';
 
-        return Right(user);
+        if (token.isEmpty) {
+          return const Left('Registration response missing token.');
+        }
+
+        return Right(RegisterResult(user: user, token: token));
       } else {
         return const Left('Registration failed. Please try again.');
       }
@@ -176,7 +193,20 @@ class AuthService {
       if (e.response != null && e.response!.data != null) {
         final errorData = e.response!.data;
         if (errorData is Map<String, dynamic>) {
-          // Check for success: false response
+          // If server returned 4xx but body has success: true (edge case), treat as success
+          final success = errorData['success'] as bool? ?? false;
+          if (success &&
+              errorData.containsKey('data') &&
+              errorData['data'] is Map<String, dynamic>) {
+            final data = errorData['data'] as Map<String, dynamic>;
+            final userJson = data['user'] as Map<String, dynamic>?;
+            final token = data['token'] as String? ?? '';
+            if (userJson != null && token.isNotEmpty) {
+              final user = UserModel.fromJson(userJson);
+              return Right(RegisterResult(user: user, token: token));
+            }
+          }
+          // Normal error: use message from body
           if (errorData.containsKey('success') &&
               errorData['success'] == false &&
               errorData.containsKey('message')) {
@@ -634,7 +664,8 @@ class AuthService {
         final success = responseData['success'] as bool? ?? false;
 
         if (!success) {
-          final message = responseData['message'] as String? ??
+          final message =
+              responseData['message'] as String? ??
               'Failed to update profile picture';
           return Left(message);
         }
@@ -644,7 +675,9 @@ class AuthService {
 
         return Right(profilePictureUrl);
       } else {
-        return const Left('Failed to update profile picture. Please try again.');
+        return const Left(
+          'Failed to update profile picture. Please try again.',
+        );
       }
     } on DioException catch (e) {
       String errorMessage = 'An error occurred. Please try again.';

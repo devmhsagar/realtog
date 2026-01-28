@@ -102,7 +102,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final email = extra?['email'] as String? ?? '';
-          return OtpVerificationPage(email: email);
+          final source = extra?['source'] as String? ?? 'forgot_password';
+          return OtpVerificationPage(email: email, source: source);
         },
       ),
       GoRoute(
@@ -199,10 +200,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra as Map<String, dynamic>?;
           if (extra == null) {
             // Fallback if no data provided
-            return const CheckoutWebViewPage(
-              sessionUrl: '',
-              sessionId: '',
-            );
+            return const CheckoutWebViewPage(sessionUrl: '', sessionId: '');
           }
           return CheckoutWebViewPage(
             sessionUrl: extra['sessionUrl'] as String? ?? '',
@@ -232,7 +230,7 @@ class _AuthNotifierListenable extends Listenable {
       // 3. Registration state changes (user set but not authenticated)
       // Only refresh when isAuthenticated actually changes
       final authChanged = previous?.isAuthenticated != next.isAuthenticated;
-      
+
       if (authChanged) {
         listener();
       }

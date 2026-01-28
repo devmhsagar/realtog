@@ -49,7 +49,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (!mounted) return;
 
       if (authState.error != null) {
-        // Registration failed - show error and stay on page
+        // Registration failed - show API message and stay on page
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -57,22 +57,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             backgroundColor: AppColors.error,
           ),
         );
-      } else if (authState.user != null && !authState.isAuthenticated) {
-        // Registration successful - show success message and navigate to login
+      } else if (authState.user != null &&
+          authState.pendingRegisterToken != null) {
+        // Registration successful - show OTP hint and navigate to OTP screen
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registration successful! Please login to continue.'),
+            content: Text('Check your email for the OTP'),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 2),
           ),
         );
-        // Navigate to login page after showing success message
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            context.go('/login');
-          }
-        });
+        if (mounted) {
+          context.push(
+            '/otp-verification',
+            extra: {'email': authState.user!.email, 'source': 'register'},
+          );
+        }
       }
     }
   }

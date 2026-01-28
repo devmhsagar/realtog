@@ -3,14 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:realtog/core/constants/app_colors.dart';
 import 'package:realtog/core/services/auth_service.dart';
+import 'package:realtog/providers/auth_provider.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
   final String email;
 
-  const OtpVerificationPage({super.key, required this.email});
+  /// 'register' = after sign up, verify then log in; 'forgot_password' = verify then reset password.
+  final String source;
+
+  const OtpVerificationPage({
+    super.key,
+    required this.email,
+    this.source = 'forgot_password',
+  });
 
   @override
   ConsumerState<OtpVerificationPage> createState() =>
@@ -78,6 +85,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
       _isLoading = false;
     });
 
+    if (!mounted) return;
+
     result.fold(
       (error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -85,9 +94,22 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         );
       },
       (email) {
-        // Success - navigate to reset password screen with OTP
-        final otp = _getOtp();
-        context.push('/reset-password', extra: {'email': email, 'otp': otp});
+        if (widget.source == 'register') {
+          // Registration flow: save token and go to home
+          ref
+              .read(authNotifierProvider.notifier)
+              .completeRegistrationAfterOtp();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email verified successfully'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          context.go('/home');
+        } else {
+          // Forgot password flow: navigate to reset password
+          context.push('/reset-password', extra: {'email': email, 'otp': otp});
+        }
       },
     );
   }

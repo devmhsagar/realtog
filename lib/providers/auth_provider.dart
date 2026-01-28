@@ -9,11 +9,15 @@ class AuthState {
   final String? error;
   final UserModel? user;
 
+  /// Token from register API; saved to storage after OTP verification.
+  final String? pendingRegisterToken;
+
   const AuthState({
     this.isAuthenticated = false,
     this.isLoading = false,
     this.error,
     this.user,
+    this.pendingRegisterToken,
   });
 
   AuthState copyWith({
@@ -21,12 +25,17 @@ class AuthState {
     bool? isLoading,
     String? error,
     UserModel? user,
+    String? pendingRegisterToken,
+    bool clearPendingRegisterToken = false,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
+      pendingRegisterToken: clearPendingRegisterToken
+          ? null
+          : (pendingRegisterToken ?? this.pendingRegisterToken),
     );
   }
 }
@@ -105,14 +114,28 @@ class AuthNotifier extends Notifier<AuthState> {
 
     result.fold(
       (error) {
-        // Set error with loading false
         state = state.copyWith(isLoading: false, error: error);
       },
-      (user) {
-        // For registration, we don't set isAuthenticated to true
-        // User needs to login after registration
-        state = state.copyWith(isLoading: false, user: user, error: null);
+      (registerResult) {
+        // Store user and token until OTP is verified; then completeRegistrationAfterOtp saves token
+        state = state.copyWith(
+          isLoading: false,
+          user: registerResult.user,
+          pendingRegisterToken: registerResult.token,
+          error: null,
+        );
       },
+    );
+  }
+
+  /// Call after OTP verification in registration flow: save token and mark authenticated.
+  Future<void> completeRegistrationAfterOtp() async {
+    final token = state.pendingRegisterToken;
+    if (token == null || token.isEmpty) return;
+    await _authService.saveToken(token);
+    state = state.copyWith(
+      isAuthenticated: true,
+      clearPendingRegisterToken: true,
     );
   }
 
@@ -157,17 +180,14 @@ final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(() {
 final profileDataProvider = FutureProvider<UserModel>((ref) async {
   // Watch auth state to automatically invalidate when auth changes
   final authState = ref.watch(authNotifierProvider);
-  
+
   // Only fetch if authenticated
   if (!authState.isAuthenticated) {
     throw Exception('User not authenticated');
   }
-  
+
   final authService = ref.read(authServiceProvider);
   final result = await authService.getCurrentUser();
-  
-  return result.fold(
-    (error) => throw Exception(error),
-    (user) => user,
-  );
+
+  return result.fold((error) => throw Exception(error), (user) => user);
 });
