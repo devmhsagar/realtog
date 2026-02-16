@@ -18,26 +18,42 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
+
   bool _isInitialized = false;
   bool _isCapturing = false;
+
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
-  StreamSubscription<CameraImage>? _imageStreamSubscription;
-  double _roll = 0.0; // Rotation around Z-axis (horizon tilt)
-  double _pitch = 0.0; // Rotation around X-axis (forward/backward tilt)
-  static const double _levelThreshold = 2.0; // Degrees considered "level"
-  static const double _verticalLevelTarget =
-      -90.0; // Target pitch for vertical level in landscape (negative value)
-  static const double _verticalLevelThreshold =
-      10.0; // Degrees considered "vertically level" (wider range for detection)
+
+  double _roll = 0.0;
+  double _pitch = 0.0;
+
+  static const double _levelThreshold = 2.0;
+  static const double _verticalLevelTarget = -90.0;
+  static const double _verticalLevelThreshold = 10.0;
+
   bool _isLowLight = false;
-  static const double _lowLightThreshold =
-      0.60; // Brightness threshold (0.0 to 1.0) - 60% or less shows warning
+  bool _showLowLightWarning = true;
   DateTime? _lastBrightnessCheck;
+  static const double _lowLightThreshold = 0.60;
+
+  // Zoom
+  double _currentZoom = 1.0;
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+
+  // 🔥 Exposure (NEW)
+  double _currentExposure = 0.0;
+  double _minExposure = 0.0;
+  double _maxExposure = 0.0;
+  bool _showExposureBar = false;
+  Timer? _exposureTimer;
+
+  // Grid
+  bool _showGrid = true;
 
   @override
   void initState() {
     super.initState();
-    // Set orientation to landscape for camera page
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -48,318 +64,163 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> _initializeCamera() async {
     try {
-      if (_cameras == null) {
-        _cameras = await availableCameras();
-        if (_cameras == null || _cameras!.isEmpty) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('No cameras available'),
-                backgroundColor: AppColors.error,
-              ),
-            );
-            _popWithOrientationRestore();
-          }
-          return;
-        }
-      }
+      _cameras ??= await availableCameras();
+      final rearCamera =
+      _cameras!.firstWhere((c) => c.lensDirection == CameraLensDirection.back);
 
-      // Find rear camera
-      CameraDescription? rearCamera;
-      for (var camera in _cameras!) {
-        if (camera.lensDirection == CameraLensDirection.back) {
-          rearCamera = camera;
-          break;
-        }
-      }
-
-      if (rearCamera == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Rear camera not available'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-          _popWithOrientationRestore();
-        }
-        return;
-      }
-
-      // Dispose previous controller if exists
       await _controller?.dispose();
 
       _controller = CameraController(
         rearCamera,
         ResolutionPreset.high,
         enableAudio: false,
-        imageFormatGroup: Platform.isAndroid
-            ? ImageFormatGroup.jpeg
-            : ImageFormatGroup.bgra8888,
+        imageFormatGroup:
+        Platform.isAndroid ? ImageFormatGroup.jpeg : ImageFormatGroup.bgra8888,
       );
 
       await _controller!.initialize();
 
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-        _startBrightnessMonitoring();
-      }
+      _minZoom = await _controller!.getMinZoomLevel();
+      _maxZoom = await _controller!.getMaxZoomLevel();
+      _currentZoom = _minZoom < 1.0 ? _minZoom : 1.0;
+
+      await _controller!.setZoomLevel(_currentZoom);
+
+      // 🔥 Exposure init
+      _minExposure = await _controller!.getMinExposureOffset();
+      _maxExposure = await _controller!.getMaxExposureOffset();
+
+      setState(() => _isInitialized = true);
+      _startBrightnessMonitoring();
     } catch (e) {
-      debugPrint('Error initializing camera: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error initializing camera: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        if (!_isInitialized) {
-          _popWithOrientationRestore();
-        }
-      }
+      debugPrint("Camera init error: $e");
     }
+  }
+
+  void _toggleExposureBar() {
+    setState(() => _showExposureBar = true);
+
+    _exposureTimer?.cancel();
+    _exposureTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _showExposureBar = false);
+    });
   }
 
   void _startBrightnessMonitoring() {
-    if (_controller == null || !_controller!.value.isInitialized) {
-      return;
-    }
-
-    try {
-      _controller!.startImageStream((CameraImage image) {
-        // Check brightness every 500ms to avoid performance issues
-        final now = DateTime.now();
-        if (_lastBrightnessCheck == null ||
-            now.difference(_lastBrightnessCheck!).inMilliseconds > 500) {
-          _lastBrightnessCheck = now;
-          _checkBrightness(image);
+    _controller?.startImageStream((image) {
+      final now = DateTime.now();
+      if (_lastBrightnessCheck == null ||
+          now.difference(_lastBrightnessCheck!).inMilliseconds > 500) {
+        _lastBrightnessCheck = now;
+        final brightness = _calculateBrightness(image);
+        if (mounted) {
+          setState(() {
+            _isLowLight = brightness < _lowLightThreshold;
+          });
         }
-      });
-    } catch (e) {
-      debugPrint('Error starting image stream: $e');
-    }
-  }
-
-  void _checkBrightness(CameraImage image) {
-    try {
-      final brightness = _calculateBrightness(image);
-      if (mounted) {
-        setState(() {
-          _isLowLight = brightness < _lowLightThreshold;
-        });
       }
-    } catch (e) {
-      debugPrint('Error checking brightness: $e');
-    }
+    });
   }
 
   double _calculateBrightness(CameraImage image) {
-    // Calculate average brightness from the image
-    // For YUV420 format (Android), use Y plane
-    // For BGRA8888 format (iOS), calculate from RGB
-
-    if (image.format.group == ImageFormatGroup.yuv420) {
-      // Android: Use Y plane (luminance)
-      final yPlane = image.planes[0];
-      final bytes = yPlane.bytes;
-      int sum = 0;
-
-      // Sample every 10th pixel for performance
-      for (int i = 0; i < bytes.length; i += 10) {
-        sum += bytes[i];
-      }
-
-      final avg = sum / (bytes.length / 10);
-      return avg / 255.0; // Normalize to 0.0-1.0
-    } else if (image.format.group == ImageFormatGroup.bgra8888) {
-      // iOS: Calculate luminance from RGB
-      final plane = image.planes[0];
-      final bytes = plane.bytes;
-      int sum = 0;
-      int count = 0;
-
-      // Sample every 40th pixel (BGRA = 4 bytes per pixel, so every 10th pixel)
-      for (int i = 0; i < bytes.length - 3; i += 40) {
-        // Extract RGB values (BGRA format)
-        final b = bytes[i];
-        final g = bytes[i + 1];
-        final r = bytes[i + 2];
-
-        // Calculate luminance using standard formula
-        final luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-        sum += luminance.toInt();
-        count++;
-      }
-
-      if (count > 0) {
-        final avg = sum / count;
-        return avg / 255.0; // Normalize to 0.0-1.0
-      }
+    final plane = image.planes.first;
+    int sum = 0;
+    for (int i = 0; i < plane.bytes.length; i += 20) {
+      sum += plane.bytes[i];
     }
-
-    return 0.5; // Default if format not recognized
+    return (sum / (plane.bytes.length / 20)) / 255.0;
   }
 
   void _startSensorListening() {
-    try {
-      _accelerometerSubscription = accelerometerEventStream().listen(
-        (AccelerometerEvent event) {
+    _accelerometerSubscription =
+        accelerometerEventStream().listen((event) {
+          final roll =
+              atan2(event.y, sqrt(event.x * event.x + event.z * event.z)) *
+                  180 /
+                  pi;
+
+          final pitch =
+              atan2(-event.x, sqrt(event.y * event.y + event.z * event.z)) *
+                  180 /
+                  pi;
+
           if (mounted) {
-            // Calculate roll and pitch for landscape orientation
-            // In landscape mode, axes are rotated:
-            // - Roll (left/right tilt): rotation around forward axis - use Y and Z
-            // - Pitch (forward/backward tilt): rotation around side axis - use X and Z
-            // When level in landscape: X ≈ -9.8 (gravity down), Y ≈ 0, Z ≈ 0
-
-            // Roll: left/right tilt (rotation around forward/backward axis)
-            // Positive roll = tilted right, Negative roll = tilted left
-            final rollRadians = atan2(
-              event.y,
-              sqrt(event.x * event.x + event.z * event.z),
-            );
-
-            // Pitch: forward/backward tilt (rotation around left/right axis)
-            // Positive pitch = tilted forward, Negative pitch = tilted backward
-            final pitchRadians = atan2(
-              -event.x,
-              sqrt(event.y * event.y + event.z * event.z),
-            );
-
-            final roll = (rollRadians * 180.0 / pi).clamp(-90.0, 90.0);
-            final pitch = (pitchRadians * 180.0 / pi).clamp(-90.0, 90.0);
-
             setState(() {
               _roll = roll;
               _pitch = pitch;
             });
           }
-        },
-        onError: (error) {
-          debugPrint('Accelerometer error: $error');
-          // If sensors are not available, just keep the indicator at 0 (level)
-          // The camera will still work, just without the level indicator
-        },
-        cancelOnError: false,
-      );
-    } catch (e) {
-      debugPrint('Failed to start accelerometer: $e');
-      // If sensors are not available, the camera will still work
-      // The horizon indicator will just show as level (0 degrees)
-    }
-  }
-
-  Future<void> _captureImage() async {
-    if (!_isInitialized ||
-        _controller == null ||
-        !_controller!.value.isInitialized) {
-      return;
-    }
-
-    if (_isCapturing) return;
-
-    setState(() {
-      _isCapturing = true;
-    });
-
-    try {
-      final XFile image = await _controller!.takePicture();
-
-      if (mounted) {
-        await _popWithOrientationRestore(image);
-      }
-    } catch (e) {
-      debugPrint('Error capturing image: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error capturing image: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCapturing = false;
         });
-      }
-    }
   }
 
   bool get _isLevel => _roll.abs() < _levelThreshold;
 
-  // Check if vertical is level
-  // In landscape mode, when device is level (not tilted forward/backward),
-  // the pitch calculation gives -90° (negative value)
-  bool get _isVerticalLevel {
-    // Check if pitch is close to -90° (expected when level in landscape)
-    final diffFromNeg90 = (_pitch - _verticalLevelTarget).abs();
-    final isNearNeg90 = diffFromNeg90 <= _verticalLevelThreshold;
+  bool get _isVerticalLevel =>
+      (_pitch - _verticalLevelTarget).abs() <= _verticalLevelThreshold;
 
-    // Also check if pitch is in the lower range (-90° to -80°) - near minimum clamp
-    final isInLowerRange = _pitch <= (-90.0 + _verticalLevelThreshold);
+  Future<void> _captureImage() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (_isCapturing) return;
 
-    // Debug: Check console to see actual pitch values
-    // debugPrint('Pitch: $_pitch, diffFromNeg90: $diffFromNeg90, isNearNeg90: $isNearNeg90, isInLowerRange: $isInLowerRange');
+    setState(() => _isCapturing = true);
 
-    return isNearNeg90 || isInLowerRange;
+    try {
+      final image = await _controller!.takePicture();
+      await _popWithOrientationRestore(image);
+    } catch (e) {
+      debugPrint("Capture error: $e");
+    } finally {
+      if (mounted) setState(() => _isCapturing = false);
+    }
   }
 
-  /// Restores portrait orientation and pops the route
   Future<void> _popWithOrientationRestore([dynamic result]) async {
-    // Restore portrait orientation before navigation
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    // Wait a frame to ensure orientation is applied
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (mounted) {
-      Navigator.of(context).pop(result);
-    }
+    if (mounted) Navigator.pop(context, result);
   }
 
   @override
   void dispose() {
-    // Restore portrait orientation when leaving camera page (fallback)
+    _exposureTimer?.cancel();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     _accelerometerSubscription?.cancel();
-    _imageStreamSubscription?.cancel();
-    _controller?.stopImageStream();
     _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (!didPop) {
-          await _popWithOrientationRestore();
-        }
-      },
+    return GestureDetector(
+      onTap: () => setState(() => _showExposureBar = false),
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              // Camera preview
-              if (_isInitialized && _controller != null)
-                Positioned.fill(child: CameraPreview(_controller!))
-              else
-                const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
+        body: _isInitialized
+            ? Stack(
+          children: [
+            // 🔥 3:2 FORMAT FIX
+            Positioned.fill(
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 3 / 2,
+                  child: CameraPreview(_controller!),
                 ),
+              ),
+            ),
 
-              // Horizon level indicator
-              if (_isInitialized)
-                Positioned.fill(
+            if (_showGrid)
+              Positioned.fill(child: CustomPaint(painter: _GridPainter())),
+
+            // 🔥 Level Indicator (Tap to open exposure)
+            Positioned.fill(
+              child: Center(
+                child: GestureDetector(
+                  onTap: _toggleExposureBar,
                   child: _HorizonLevelIndicator(
                     roll: _roll,
                     pitch: _pitch,
@@ -367,133 +228,183 @@ class _CameraPageState extends State<CameraPage> {
                     isVerticalLevel: _isVerticalLevel,
                   ),
                 ),
+              ),
+            ),
 
-              // Low light warning message
-              if (_isInitialized && _isLowLight)
-                Positioned(
-                  bottom: 10,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 10.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.lightbulb_outline,
-                            color: AppColors.textLight,
-                            size: 10.sp,
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'Low light detected. Please increase the room lighting.',
-                            style: TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 6.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
+
+            if (_showExposureBar)
+              Positioned(
+                top: MediaQuery.of(context).size.height / 2 - 100,
+                left: MediaQuery.of(context).size.width / 2 + 50,
+                child: Container(
+                  height: 200,
+                  width: 40,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: RotatedBox(
+                    quarterTurns: 3,
+                    child: Slider(
+                      value: _currentExposure.clamp(_minExposure, _maxExposure),
+                      min: _minExposure,
+                      max: _maxExposure,
+                      activeColor: Colors.orange,
+                      onChanged: (value) async {
+                        setState(() {
+                          _currentExposure = value;
+                        });
+                        await _controller!.setExposureOffset(value);
+                      },
                     ),
                   ),
                 ),
+              ),
 
-              // Top bar with close button
+            // Close Button
+            Positioned(
+              top: 20,
+              left: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: _popWithOrientationRestore,
+              ),
+            ),
+
+            // Capture Button
+            Positioned(
+              right: 20,
+              top: 55,
+              child: GestureDetector(
+                onTap: _captureImage,
+                child: Container(
+                  width: 24.w,
+                  height: 24.w,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Icon(Icons.camera_alt,
+                      color: AppColors.primary, size: 12.sp),
+                ),
+              ),
+            ),
+          // Low light message (Original design restored)
+            if (_isLowLight && _showLowLightWarning)
               Positioned(
-                top: 0,
+                bottom: 20,
                 left: 0,
                 right: 0,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.7),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                child: Center(
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      IconButton(
-                        onPressed: () => _popWithOrientationRestore(),
-                        icon: Icon(
-                          Icons.close,
-                          color: AppColors.textLight,
-                          size: 14.sp,
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 10.h,
                         ),
-                        padding: EdgeInsets.all(8.w),
-                        constraints: const BoxConstraints(),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning,
+                          borderRadius: BorderRadius.circular(14.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "Low light detected. Increase room lighting.",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                      Positioned(
+                        top: -8,
+                        right: -4,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _showLowLightWarning = false;
+                            });
+                          },
+                          child: Container(
+                            width: 10.w,
+                            height: 10.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.25),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 8.sp,
+                              color: AppColors.warning,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // Capture button - top right
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(16.w),
-                  child: GestureDetector(
-                    onTap: _isCapturing ? null : _captureImage,
-                    child: Container(
-                      width: 36.w,
-                      height: 36.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _isCapturing
-                            ? AppColors.textSecondary
-                            : AppColors.textLight,
-                        border: Border.all(
-                          color: AppColors.textLight,
-                          width: 2.w,
-                        ),
+            // Zoom
+            Positioned(
+              right: 20,
+              bottom: 80,
+              child: Column(
+                children: [
+                  RotatedBox(
+                    quarterTurns: 3,
+                    child: SizedBox(
+                      width: 120,
+                      child: Slider(
+                        value:
+                        _currentZoom.clamp(_minZoom, _maxZoom),
+                        min: _minZoom,
+                        max: _maxZoom,
+                        activeColor: AppColors.primary,
+                        onChanged: (value) async {
+                          setState(() {
+                            _currentZoom = value;
+                          });
+                          await _controller!
+                              .setZoomLevel(value);
+                        },
                       ),
-                      child: _isCapturing
-                          ? Padding(
-                              padding: EdgeInsets.all(10.w),
-                              child: const CircularProgressIndicator(
-                                color: AppColors.primary,
-                                strokeWidth: 3,
-                              ),
-                            )
-                          : Icon(
-                              Icons.camera_alt,
-                              color: AppColors.primary,
-                              size: 16.sp,
-                            ),
                     ),
                   ),
-                ),
+                  Text(
+                    "${_currentZoom.toStringAsFixed(1)}x",
+                    style:
+                    const TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          ],
+        )
+            : const Center(
+            child:
+            CircularProgressIndicator(color: AppColors.primary)),
       ),
     );
   }
 }
-
-/// Horizon level indicator widget
 class _HorizonLevelIndicator extends StatelessWidget {
   final double roll;
   final double pitch;
@@ -509,82 +420,79 @@ class _HorizonLevelIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final circleSize = 30.0;
-    // Horizontal line and circle use green when level, red when not
-    final horizontalLineColor = isLevel ? AppColors.success : AppColors.error;
-    // Vertical line uses yellow only when vertically level (pitch ≈ 90°), red otherwise
-    final verticalLineColor = isVerticalLevel
-        ? AppColors.warning
-        : AppColors.error;
+    final circleSize = 60.0;
+    final horizontalColor =
+    isLevel ? Colors.green : Colors.red;
+    final verticalColor =
+    isVerticalLevel ? Colors.orange : Colors.red;
 
-    // Convert roll and pitch to radians for rotation
-    // In landscape mode:
-    // - Roll (left/right tilt) rotates the horizontal line for horizontal confirmation
-    // - Pitch (forward/backward tilt) rotates the vertical line for vertical confirmation
-    final rollRadians = roll * pi / 180.0;
-    final pitchRadians = pitch * pi / 180.0;
-    // Horizontal line: starts at 180 degrees (horizontal), then rotates by roll
-    // 180° = pi radians = horizontal line pointing left
-    final horizontalLineAngle = pi + rollRadians;
-    // Vertical line: starts at 90 degrees (vertical), then rotates by pitch
-    // 90° = pi/2 radians = vertical line pointing down
-    // In landscape mode, when device is level, pitch calculation gives ~90° (not 0°)
-    // So we use pitch directly: when pitch = 90° (level), line is at 90° (vertical)
-    // When pitch deviates from 90°, the line rotates accordingly
-    final verticalLineAngle =
-        pitchRadians; // pitch already accounts for landscape orientation
+    final rollRadians = roll * pi / 180;
+    final pitchRadians = pitch * pi / 180;
 
-    return IgnorePointer(
-      child: Center(
-        child: Container(
-          width: circleSize.w,
-          height: circleSize.w,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: horizontalLineColor, width: 1.w),
-          ),
-          child: ClipOval(
-            child: Stack(
-              children: [
-                // Center dot
-                Center(
-                  child: Container(
-                    width: 4.w,
-                    height: 4.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: horizontalLineColor,
-                    ),
-                  ),
+    return Center(
+      child: Container(
+        width: circleSize,
+        height: circleSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: horizontalColor, width: 2),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Transform.rotate(
+                angle: pi + rollRadians,
+                child: Container(
+                  width: circleSize,
+                  height: 2,
+                  color: horizontalColor,
                 ),
-                // Horizontal line (starts at 180 degrees, rotates based on roll - for horizontal/roll confirmation)
-                Center(
-                  child: Transform.rotate(
-                    angle: horizontalLineAngle,
-                    child: Container(
-                      width: circleSize.w,
-                      height: 1.h,
-                      decoration: BoxDecoration(color: horizontalLineColor),
-                    ),
-                  ),
-                ),
-                // Vertical line (starts at 90 degrees, rotates based on pitch - for vertical/pitch confirmation)
-                // Yellow when level, red when not
-                Center(
-                  child: Transform.rotate(
-                    angle: verticalLineAngle,
-                    child: Container(
-                      width: circleSize.w,
-                      height: 1.5.h, // Slightly thicker for visibility
-                      decoration: BoxDecoration(color: verticalLineColor),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Center(
+              child: Transform.rotate(
+                angle: pitchRadians,
+                child: Container(
+                  width: circleSize,
+                  height: 2,
+                  color: verticalColor,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.4)
+      ..strokeWidth = 1;
+
+    canvas.drawLine(
+        Offset(size.width / 3, 0),
+        Offset(size.width / 3, size.height),
+        paint);
+
+    canvas.drawLine(
+        Offset(size.width * 2 / 3, 0),
+        Offset(size.width * 2 / 3, size.height),
+        paint);
+
+    canvas.drawLine(
+        Offset(0, size.height / 3),
+        Offset(size.width, size.height / 3),
+        paint);
+
+    canvas.drawLine(
+        Offset(0, size.height * 2 / 3),
+        Offset(size.width, size.height * 2 / 3),
+        paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -26,12 +26,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      await ref
-          .read(authNotifierProvider.notifier)
-          .login(_emailController.text.trim(), _passwordController.text);
+    if (!_formKey.currentState!.validate()) return;
+
+    await ref
+        .read(authNotifierProvider.notifier)
+        .login(_emailController.text.trim(), _passwordController.text);
+
+    final authState = ref.read(authNotifierProvider);
+
+    // 🔴 SIMPLE OTP redirect
+    if (authState.error == 'Please verify your email first') {
+      context.push(
+        '/otp-verification',
+        extra: {
+          'email': _emailController.text.trim(),
+          'source': 'register',
+        },
+      );
     }
   }
+
 
   Future<void> _handleGoogleSignIn() async {
     await ref.read(authNotifierProvider.notifier).signInWithGoogle();
@@ -44,31 +58,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Handle errors and navigation
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Clear any existing snackbars on successful login
-      if (next.isAuthenticated && 
-          previous?.isAuthenticated == false &&
-          previous?.isLoading == true) {
-        // Login successful - clear any existing snackbars (e.g., from registration)
-        ScaffoldMessenger.of(context).clearSnackBars();
+      // 🔴 Auto redirect to OTP for unverified user (SAFE way)
+      if (previous?.pendingUser == null &&
+          next.pendingUser != null &&
+          !next.isAuthenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.push(
+            '/otp-verification',
+            extra: {
+              'email': next.pendingUser!.email,
+              'source': 'register',
+            },
+          );
+        });
         return;
       }
-      
-      // Only show snackbar for errors
+
+      // Show error snackbar
       if (next.error != null &&
           (previous?.error == null || previous?.isLoading == true)) {
-        // Clear any existing snackbar first
-        ScaffoldMessenger.of(context).clearSnackBars();
-        // Show new snackbar with unique key to ensure it displays
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            key: ValueKey(DateTime.now().millisecondsSinceEpoch),
-            content: Text(next.error!),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.error!),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        });
       }
-      // Navigation is handled by RootPage based on auth state
     });
+
+
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -204,78 +225,78 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                           SizedBox(height: 16.h),
 
-                          // Divider
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.white.withValues(alpha: 0.3),
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                child: Text(
-                                  'OR',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: AppColors.white.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.white.withValues(alpha: 0.3),
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16.h),
+                          // // Divider
+                          // Row(
+                          //   children: [
+                          //     Expanded(
+                          //       child: Divider(
+                          //         color: AppColors.white.withValues(alpha: 0.3),
+                          //         thickness: 1,
+                          //       ),
+                          //     ),
+                          //     Padding(
+                          //       padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          //       child: Text(
+                          //         'OR',
+                          //         style: TextStyle(
+                          //           fontSize: 14.sp,
+                          //           color: AppColors.white.withValues(
+                          //             alpha: 0.7,
+                          //           ),
+                          //           fontWeight: FontWeight.w500,
+                          //         ),
+                          //       ),
+                          //     ),
+                          //     Expanded(
+                          //       child: Divider(
+                          //         color: AppColors.white.withValues(alpha: 0.3),
+                          //         thickness: 1,
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
+                          // SizedBox(height: 16.h),
 
                           // Google Sign In Button
-                          SizedBox(
-                            height: 56.h,
-                            child: OutlinedButton(
-                              onPressed: authState.isLoading
-                                  ? null
-                                  : _handleGoogleSignIn,
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: AppColors.white,
-                                foregroundColor: AppColors.textPrimary,
-                                side: BorderSide(
-                                  color: AppColors.white.withValues(alpha: 0.3),
-                                  width: 1.5,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/google.png',
-                                    width: 24.w,
-                                    height: 24.h,
-                                  ),
-                                  SizedBox(width: 12.w),
-                                  Text(
-                                    'Continue with Google',
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 16.h),
+                          // SizedBox(
+                          //   height: 56.h,
+                          //   child: OutlinedButton(
+                          //     onPressed: authState.isLoading
+                          //         ? null
+                          //         : _handleGoogleSignIn,
+                          //     style: OutlinedButton.styleFrom(
+                          //       backgroundColor: AppColors.white,
+                          //       foregroundColor: AppColors.textPrimary,
+                          //       side: BorderSide(
+                          //         color: AppColors.white.withValues(alpha: 0.3),
+                          //         width: 1.5,
+                          //       ),
+                          //       shape: RoundedRectangleBorder(
+                          //         borderRadius: BorderRadius.circular(12.r),
+                          //       ),
+                          //     ),
+                          //     child: Row(
+                          //       mainAxisAlignment: MainAxisAlignment.center,
+                          //       children: [
+                          //         Image.asset(
+                          //           'assets/images/google.png',
+                          //           width: 24.w,
+                          //           height: 24.h,
+                          //         ),
+                          //         SizedBox(width: 12.w),
+                          //         Text(
+                          //           'Continue with Google',
+                          //           style: TextStyle(
+                          //             fontSize: 16.sp,
+                          //             fontWeight: FontWeight.w600,
+                          //             color: AppColors.textPrimary,
+                          //           ),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+
 
                           // Register Link
                           Row(

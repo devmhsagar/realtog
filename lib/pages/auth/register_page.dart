@@ -57,9 +57,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             backgroundColor: AppColors.error,
           ),
         );
-      } else if (authState.user != null &&
-          authState.pendingRegisterToken != null) {
-        // Registration successful - show OTP hint and navigate to OTP screen
+      } else if (authState.pendingRegisterToken != null &&
+          authState.pendingUser != null) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -67,13 +66,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             backgroundColor: AppColors.success,
           ),
         );
-        if (mounted) {
-          context.push(
-            '/otp-verification',
-            extra: {'email': authState.user!.email, 'source': 'register'},
-          );
-        }
+
+        context.push(
+          '/otp-verification',
+          extra: {
+            'email': authState.pendingUser!.email,
+            'source': 'register',
+          },
+        );
       }
+
     }
   }
 

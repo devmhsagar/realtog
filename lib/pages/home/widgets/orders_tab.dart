@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/order_model.dart';
 import '../../../providers/order_provider.dart';
@@ -142,6 +143,18 @@ class OrdersTab extends ConsumerWidget {
 class _OrderCard extends StatelessWidget {
   final OrderModel order;
 
+  Future<void> _launchDownload(String url) async {
+    final uri = Uri.parse(url);
+
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    )) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+
   const _OrderCard({required this.order});
 
   Color _getStatusColor(String status) {
@@ -225,29 +238,75 @@ class _OrderCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 6.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(order.status).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(
-                      color: _getStatusColor(
-                        order.status,
-                      ).withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    order.status,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: _getStatusColor(order.status),
-                    ),
-                  ),
-                ),
+      (order.status.toLowerCase().contains('deliver'))
+          ? ElevatedButton(
+        onPressed: () async {
+          if (order.submissions.isEmpty) return;
+
+          final downloadUrl = order.submissions.first.zipUrl;
+
+          if (downloadUrl.isEmpty) {
+            print("Zip URL empty");
+            return;
+          }
+
+          await launchUrl(
+            Uri.parse(downloadUrl),
+            mode: LaunchMode.externalApplication,
+          );
+        },
+
+
+
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textLight,
+          padding: EdgeInsets.symmetric(
+            horizontal: 14.w,
+            vertical: 6.h,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.download, size: 14.sp),
+            SizedBox(width: 6.w),
+            Text(
+              'Download',
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      )
+          : Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 12.w,
+          vertical: 6.h,
+        ),
+        decoration: BoxDecoration(
+          color: _getStatusColor(order.status)
+              .withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: _getStatusColor(order.status)
+                .withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          order.status,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            color: _getStatusColor(order.status),
+          ),
+        ),
+      ),
               ],
             ),
             SizedBox(height: 16.h),

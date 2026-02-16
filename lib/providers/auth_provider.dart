@@ -7,9 +7,14 @@ class AuthState {
   final bool isAuthenticated;
   final bool isLoading;
   final String? error;
+
+  /// Fully authenticated user (after OTP)
   final UserModel? user;
 
-  /// Token from register API; saved to storage after OTP verification.
+  /// User created but not verified yet
+  final UserModel? pendingUser;
+
+  /// Token from register API; saved only after OTP verification
   final String? pendingRegisterToken;
 
   const AuthState({
@@ -17,6 +22,7 @@ class AuthState {
     this.isLoading = false,
     this.error,
     this.user,
+    this.pendingUser,
     this.pendingRegisterToken,
   });
 
@@ -25,20 +31,25 @@ class AuthState {
     bool? isLoading,
     String? error,
     UserModel? user,
+    UserModel? pendingUser,
     String? pendingRegisterToken,
     bool clearPendingRegisterToken = false,
+    bool clearPendingUser = false,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
+      pendingUser:
+      clearPendingUser ? null : (pendingUser ?? this.pendingUser),
       pendingRegisterToken: clearPendingRegisterToken
           ? null
           : (pendingRegisterToken ?? this.pendingRegisterToken),
     );
   }
 }
+
 
 /// Auth service provider
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -84,14 +95,24 @@ class AuthNotifier extends Notifier<AuthState> {
       (error) {
         state = state.copyWith(isLoading: false, error: error);
       },
-      (user) {
+          (user) {
+        // 🔴 VERY IMPORTANT:
+        // Block login if user email/phone is not verified
+        if (user.emailVerified == false) {
+          state = state.copyWith(
+            isLoading: false,
+            isAuthenticated: false,
+            error: 'Please verify your email first',
+          );
+          return;
+        }
+
+        // ✅ Verified user → allow login
         state = state.copyWith(
           isLoading: false,
           isAuthenticated: true,
           user: user,
         );
-        // Providers watching authNotifierProvider will automatically invalidate
-        // and refetch when auth state changes
       },
     );
   }
@@ -102,8 +123,17 @@ class AuthNotifier extends Notifier<AuthState> {
     required String phone,
     required String password,
   }) async {
-    // Clear previous error and set loading
-    state = state.copyWith(isLoading: true, error: null);
+
+    // 🔥 VERY IMPORTANT FIX
+    // Clear any existing login session before registering
+    await _authService.logout();
+
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      isAuthenticated: false,
+    );
+
 
     final result = await _authService.register(
       name: name,
@@ -116,12 +146,14 @@ class AuthNotifier extends Notifier<AuthState> {
       (error) {
         state = state.copyWith(isLoading: false, error: error);
       },
-      (registerResult) {
-        // Store user and token until OTP is verified; then completeRegistrationAfterOtp saves token
+          (registerResult) {
+        // IMPORTANT:
+        // Registration ≠ Authentication
         state = state.copyWith(
           isLoading: false,
-          user: registerResult.user,
+          pendingUser: registerResult.user,
           pendingRegisterToken: registerResult.token,
+          isAuthenticated: false, // 🔒 force false until OTP verified
           error: null,
         );
       },
@@ -129,15 +161,23 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Call after OTP verification in registration flow: save token and mark authenticated.
-  Future<void> completeRegistrationAfterOtp() async {
+ Future<void> completeRegistrationAfterOtp() async {
     final token = state.pendingRegisterToken;
-    if (token == null || token.isEmpty) return;
+    final pendingUser = state.pendingUser;
+
+    if (token == null || token.isEmpty || pendingUser == null) return;
+
+    // Save token ONLY after OTP success
     await _authService.saveToken(token);
+
     state = state.copyWith(
       isAuthenticated: true,
+      user: pendingUser,
       clearPendingRegisterToken: true,
+      clearPendingUser: true,
     );
   }
+
 
   Future<void> logout() async {
     await _authService.logout();
@@ -157,15 +197,23 @@ class AuthNotifier extends Notifier<AuthState> {
       (error) {
         state = state.copyWith(isLoading: false, error: error);
       },
-      (user) {
+          (user) {
+        // 🔴 Block login if email not verified
+        if (user.emailVerified == false) {
+          state = state.copyWith(
+            isLoading: false,
+            error: 'Please verify your email first',
+          );
+          return;
+        }
+
         state = state.copyWith(
           isLoading: false,
           isAuthenticated: true,
           user: user,
         );
-        // Providers watching authNotifierProvider will automatically invalidate
-        // and refetch when auth state changes
       },
+
     );
   }
 }

@@ -15,6 +15,7 @@ class ApiConstants {
   static const String verifyOtpUrl = "/otp/verify";
   static const String resendOtpUrl = "/otp/resend";
 
+
   // Pricing endpoints
   static const String pricingUrl = "/pricing";
 
@@ -29,4 +30,8 @@ class ApiConstants {
 
   // Profile picture endpoints
   static const String profilePictureUrl = "/users/profile-picture";
+
+  // Social Links endpoint
+  static const String socialLinksUrl = "/social-links";
+
 }
